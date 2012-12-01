@@ -1,31 +1,39 @@
+# Name of the output program.
 PRG            = led-board
-OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o heat.o led.o main.o startup.o usart.o
 
-# OPTIMIZE       = -O0 -g
+# Optimization settings
+# OPTIMIZE       = -O2 -g
 OPTIMIZE       = -flto -O2
 
-
+# Unused for now
 LIBS           =
 
 # Enable/disable debugging code. Available switches are:
 #
 # Additional trace output:
 # 	TRACE_STARTUP, TRACE_COMMANDS, TRACE_FLASH, TRACE_ERRORS, TRACE_USART
+# Suppress all trace output:
+#	NDEBUG
 # Simplifications for debugging
 # 	SHORT_LOOPS, OMIT_HEAT_CHECK
 # Cycle counting:
 # 	COUNT_USART_ISR
+# Additionaly sanity checks in usart1.c
+#       USART1_CHECKS
+DBG = -DOMIT_HEAT_CHECK -DTRACE_ERRORS -DUSART1_CHECKS
 
-DBG = -DOMIT_HEAT_CHECK -DTRACE_ERRORS
+# How many bits to use for the PWM.
+PWM_BITS = 13
 
-# You should not have to change anything below here.
-# Oh, yes?
+# End of configuration section.
+
+OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o gamma.o heat.o led.o main.o startup.o usart1.o usart2.o
 
 CC             = arm-elf-gcc
 
 # Override is only needed by avr-lib build system.
 
-override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) $(VERSION)
+override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) -DPWM_BITS=$(PWM_BITS)
 override LDFLAGS       = -Wl,-Map,$(PRG).map -nostartfiles -Tlinker.ld
 
 OBJCOPY        = arm-elf-objcopy
@@ -34,10 +42,10 @@ OBJDUMP        = arm-elf-objdump
 all: gamma_table.inc git_version.h $(PRG).elf lst text eeprom
 
 gamma_table.inc: make_gamma_table.py
-	./make_gamma_table.py 13 1.8 1.8 1.8 1.8 > gamma_table.inc
+	./make_gamma_table.py $(PWM_BITS) 1.8 1.8 1.8 1.8 > gamma_table.inc
 
 git_version.h:
-	echo "#define GIT_VERSION_ID \"" $(shell git rev-parse HEAD) > git_version.h "\""
+	echo "#define GIT_VERSION_ID \""$(shell git rev-parse HEAD)"\"" > git_version.h
 
 $(PRG).elf: $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -62,13 +70,13 @@ bin:  $(PRG).bin
 srec: $(PRG).srec
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -j .config -O ihex $< $@
+	$(OBJCOPY) -j .text -j .data -j .config -j .gamma -O ihex $< $@
 
 %.srec: %.elf
-	$(OBJCOPY) -j .text -j .data -j .config -O srec $< $@
+	$(OBJCOPY) -j .text -j .data -j .config -j .gamma -O srec $< $@
 
 %.bin: %.elf
-	$(OBJCOPY) -j .text -j .data -j .config -O binary $< $@
+	$(OBJCOPY) -j .text -j .data -j .config -j .gamma -O binary $< $@
 
 # Rules for building the .eeprom rom images
 

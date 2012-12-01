@@ -9,10 +9,11 @@
 #include "debug.h"
 #include "error.h"
 #include "fail.h"
+#include "gamma.h"
 #include "heat.h"
 #include "led.h"
-#include "macros.h"
-#include "usart.h"
+#include "usart1.h"
+#include "usart2.h"
 
 /*
  * Set to 1 by the systick timer when a heat check
@@ -37,12 +38,13 @@ int main() {
 	error_t ret;
 	vl_mode_t mode;
 
-	debug_init();
+	usart1_init();
 	
 #ifdef TRACE_STARTUP
 	dled_off();
 #endif
 
+	gamma_init();
 	led_init();
 	led_set_state(LED_STOP);
 
@@ -80,10 +82,10 @@ int main() {
 	// We are now, regardless of the value of mode, in normal mode.
 	
 	command_init();
-	usart_init();
+	usart2_init();
 
 	while (1) {
-		command = usart_next_command();
+		command = usart2_next_command();
 
 		if (command != (unsigned char*) 0) {
 #ifdef TRACE_COMMANDS

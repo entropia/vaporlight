@@ -1,10 +1,9 @@
 #include "led.h"
 
 #include "config.h"
+#include "gamma.h"
 
 #include "stm_include/stm32/timer.h"
-
-#include "gamma_table.inc"
 
 /*
  * Array of all the timer base addresses.
@@ -57,7 +56,7 @@ static void enable_all() {
 	// TODO: Can this be written as
 	// 	set_each(CCER, TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E);
 	// or will that produce errors for TIM15-17?
-	// The answer is No.
+	// The answer is: It is outside specification and should not be done.
 	
 	// Note inverted channels in TIM1!
 	TR(TIM1 , CCER) = TIM_CCER_CC1NE | TIM_CCER_CC2NE | TIM_CCER_CC3NE | TIM_CCER_CC4E;
@@ -83,7 +82,7 @@ void led_init() {
 	// Initialize PWM.
 	// Timer configuration should be:
 	// upcounting
-	// ARR = 0xfffe so that a value of 0xffff is really 100% on
+	// ARR = PWM_RELOAD
 	// Send OCxREF to OCx output (CCxE = 1, CCxNE = 0)
 	// PWM mode 1
 	// ... the right register preloading magic.
@@ -107,8 +106,6 @@ void led_init() {
 	TR(TIM16, CCMR1) = TIM_CCMR1_OC1M_PWM1;
 	TR(TIM17, CCMR1) = TIM_CCMR1_OC1M_PWM1;
 
-	// Set ARR (the number to which the timer counts) to 0xfffe.
-	// This way, a PWM value of 0xffff really means 100% on.
 	set_each(ARR, PWM_RELOAD);
 
 	// Enable outputs:
@@ -130,16 +127,6 @@ void led_init() {
 	or_each(CR1, TIM_CR1_CEN);
 }
 
-
-/*
- * Effectively computes ((raw_brightness / 255) ^ gamma(color)) * 65536.
- *
- * This is done by accessing the precomputed gamma table.
- */
-static uint16_t get_gamma(color_t color, uint8_t raw_brightness) {
-	int color_code = (int) color;
-	return gamma_table[color_code][raw_brightness];
-}
 
 /*
  * Sets the state of all LEDs and the PWM hardware. For available states
@@ -180,7 +167,7 @@ error_t led_set_brightness(uint8_t led, uint8_t brightness) {
 		error(ER_BUG, STR_WITH_LEN("LED index out of range"), EA_RESUME);
 		return E_INDEXRANGE;
 	} else {
-		pwm_values[led] = (get_gamma(config.led_color[led], brightness) *
+		pwm_values[led] = (gamma(config.led_color[led], brightness) *
 				   config.white_correction[led])
 					>> 16;
 		return E_SUCCESS;

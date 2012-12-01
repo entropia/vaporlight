@@ -2,7 +2,8 @@
 ENTRY(startup)
 
 MEMORY {
-	FLASH  (RX) : ORIGIN = 0x08000000       , LENGTH = 15k
+	FLASH  (RX) : ORIGIN = 0x08000000       , LENGTH = 13k
+	GAMMA  (RW) : ORIGIN = 0x08000000 + 13k , LENGTH = 2k
 	CONFIG (RW) : ORIGIN = 0x08000000 + 15k , LENGTH = 1k
 	RAM    (RW) : ORIGIN = 0x20000000       , LENGTH = 4k
 }
@@ -44,6 +45,10 @@ SECTIONS {
 
 	_data_length = _data_end - _data_start;
 	_data_flash_end = _data_flash_start + _data_length;
+
+	.gamma : {
+	       *(.gamma)
+        } > GAMMA
 
 	.config : {
 		*(.config)

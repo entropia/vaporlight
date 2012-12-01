@@ -5,22 +5,13 @@
 
 #include "config.h"
 #include "console.h"
-#include "debug.h"
 #include "error.h"
+#include "gamma.h"
 #include "git_version.h"
 #include "led.h"
 #include "term.h"
 
-#ifndef SIMULATION
 #include "stm_include/stm32/scb.h"
-#endif
-
-/*
- * Expanded Stringify and Stringify macros.
- * Taken from http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
- */
-#define XSTR(s) STR(s)
-#define STR(s) #s
 
 /*
  * Function type for config console commands.  The function receives
@@ -41,13 +32,6 @@ typedef struct {
 		       // command has been successfully run.
 } console_command_t;
 
-/*
- * Forward declaration for commands which need to read the command table.
- */
-static console_command_t commands[];
-
-#define COMMAND_COUNT 12
-#define MAX_ARG_LEN 3
 #define LINE_LENGTH 80
 
 static const char *ADDR_OUT_OF_RANGE =
@@ -90,6 +74,30 @@ static const char *FLASH_WRITE_FAILED =
 static const char *CORRECTION_OUT_OF_RANGE =
 	"The whitepoint correction is out of range (0 to 0xffff)" CRLF;
 
+static const char *CONFIG_IS_INVALID =
+	"The current state of configuration is invalid." CRLF;
+
+static const char *GAMMA_VALUE_OUT_OF_RANGE =
+	"The gamma value is out of range (0 to 0xffff)." CRLF;
+
+static const char *RELOADING_CONFIG =
+	"Reloading configuration..." CRLF;
+
+static const char *SAVING_CONFIG =
+	"Saving configuration..." CRLF;
+
+static const char *RELOADING_GAMMA =
+	"Reloading gamma table..." CRLF;
+
+static const char *SAVING_GAMMA =
+	"Saving gamma table..." CRLF;
+
+static const char *BEGINNING_ECHO =
+	"Echoing... Finish with q on a single line" CRLF;
+
+static const char *PASTE_NOW =
+	"Paste a file with one command per line, finish with q" CRLF;
+
 /*
  * Checks that the given value is greater than or equal to 0 and less
  * then the given limit. Prints the given message and returns
@@ -97,7 +105,7 @@ static const char *CORRECTION_OUT_OF_RANGE =
  */
 static error_t check_range(int value, int limit, const char *message) {
 	if (value < 0 || value >= limit) {
-		debug_string(message);
+		console_write(message);
 		return E_ARG_FORMAT;
 	} else {
 		return E_SUCCESS;
@@ -138,11 +146,11 @@ static error_t run_set_addr(unsigned int args[]) {
 	// The allowable range for an address is 0x00 to 0xfe
 	// (0xff is reserved)
 	if (addr < 0 || addr > 0xfd) {
-		debug_string(ADDR_OUT_OF_RANGE);
+		console_write(ADDR_OUT_OF_RANGE);
 		return E_ARG_FORMAT;
 	}
 	if (addr == 0xfd) {
-		debug_string(WARN_BROADCAST_ADDR);
+		console_write(WARN_BROADCAST_ADDR);
 	}
 
 	config.my_address = addr;
@@ -168,14 +176,9 @@ static error_t run_set_brightness(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-#ifdef SIMULATION
-	debug_string("Imagine a LED glowing...");
-	return E_SUCCESS;
-#else
 	error_t error = led_set_brightness(config.physical_led[index], (uint8_t) brightness);
 	if (error) return error;
 	return led_send_frame();
-#endif
 }
 
 /*
@@ -194,11 +197,101 @@ static error_t run_set_color(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 	if (color != RED && color != GREEN && color != BLUE && color != WHITE) {
-		debug_string(COLOR_CODE_INVALID);
+		console_write(COLOR_CODE_INVALID);
 		return E_ARG_FORMAT;
 	}
 
 	config.led_color[config.physical_led[index]] = color;
+	return E_SUCCESS;
+}
+
+/*
+ * Runs the "enter echo mode" command.
+ *
+ * Expected format for args: { }
+ *
+ * Always succeeds.
+ */
+static error_t run_echo(unsigned int args[]) {
+	char buf[80];
+
+	console_write(BEGINNING_ECHO);
+
+	do {
+		console_getline(buf, 80);
+	} while (strncmp(buf, "q", 80));
+	
+	return E_SUCCESS;
+}
+
+/*
+ * Runs the "paste command file" command.
+ *
+ * Expected format for args: { }
+ *
+ * Always succeeds (although the commands in the file may not).
+ */
+static error_t run_paste_file(unsigned int args[]) {
+	console_write(PASTE_NOW);
+
+	int should_exit = 0;
+
+	do {
+		should_exit = run_command_prompt();
+	} while(!should_exit);
+
+	return E_SUCCESS;
+}
+	
+/*
+ * Runs the "set gamma table" command.
+ *
+ * Expected format for args: { color-index, raw-brightness, gamma-value }
+ *
+ * Returns E_ARG_FORMAT if either index is out of range.
+ */
+static error_t run_set_gamma(unsigned int args[]) {
+	int color = args[0];
+	int raw = args[1];
+	int gamma = args[2];
+
+	if (color != RED && color != GREEN && color != BLUE && color != WHITE) {
+		console_write(COLOR_CODE_INVALID);
+		return E_ARG_FORMAT;
+	}
+	if (check_byte(raw, BRIGHTNESS_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+	if (check_short(gamma, GAMMA_VALUE_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+
+	gamma_edit(color, raw, gamma);
+	return E_SUCCESS;
+}
+
+/*
+ * Runs the "dump gamma table" command.
+ *
+ * Expected format for args: { }
+ *
+ * Always succeeds.
+ */
+static error_t run_dump_gamma(unsigned int args[]) {
+
+	for (unsigned b = 0; b <= 0xff; b++) {
+		console_int_02x(b);
+		console_write(": ");
+
+		// TODO has cardinality of color_t harcoded!
+		for (uint8_t c = 0; c < 4; c++) {
+			console_int_04x(gamma(c, (uint8_t) b));
+			console_write(" ");
+		}
+
+		console_write(CRLF);
+	}
+
 	return E_SUCCESS;
 }
 
@@ -232,17 +325,28 @@ static error_t run_set_heat_limit(unsigned int args[]) {
  * Returns the error reported by load_config.
  */
 static error_t run_reload_config(unsigned int args[]) {
+
+	console_write(RELOADING_CONFIG);
+
 	error_t error = load_config();
 
 	switch (error) {
 	case E_SUCCESS:
 		break;
 	case E_NOCONFIG:
-		debug_string(NO_CONFIG_FOUND);
+		console_write(NO_CONFIG_FOUND);
 		break;
 	default:
-		debug_string(UNKNOWN_FLASH_ERROR);
+		console_write(UNKNOWN_FLASH_ERROR);
 		break;
+	}
+
+	console_write(RELOADING_GAMMA);
+
+	error = gamma_reload();
+
+	if (error != E_SUCCESS) {
+		console_write(UNKNOWN_FLASH_ERROR);
 	}
 
 	return error;
@@ -287,11 +391,7 @@ static error_t run_quit(unsigned int args[]) {
  * This function does not return.
  */
 static error_t run_reset(unsigned int args[]) {
-#ifdef SIMULATION
-	debug_string("Simulation only. I will not reset your PC" CRLF);
-#else
 	SCB_AIRCR |= SCB_AIRCR_SYSRESETREQ;
-#endif
 
 	return E_SUCCESS;
 }
@@ -304,16 +404,38 @@ static error_t run_reset(unsigned int args[]) {
  * Returns the error reported by save_config.
  */
 static error_t run_save_config(unsigned int args[]) {
+	if (!config_valid(config)) {
+		console_write(CONFIG_IS_INVALID);
+		return E_NOCONFIG;
+	}
+
+	console_write(SAVING_CONFIG);
+
 	error_t error = save_config();
 
 	switch(error) {
 	case E_SUCCESS:
 		break;
 	case E_FLASH_WRITE:
-		debug_string(FLASH_WRITE_FAILED);
+		console_write(FLASH_WRITE_FAILED);
 		break;
 	default:
-		debug_string(UNKNOWN_FLASH_ERROR);
+		console_write(UNKNOWN_FLASH_ERROR);
+		break;
+	}
+
+	console_write(SAVING_GAMMA);
+
+	error = gamma_save();
+
+	switch(error) {
+	case E_SUCCESS:
+		break;
+	case E_FLASH_WRITE:
+		console_write(FLASH_WRITE_FAILED);
+		break;
+	default:
+		console_write(UNKNOWN_FLASH_ERROR);
 		break;
 	}
 
@@ -352,29 +474,17 @@ static error_t run_set_whitepoint(unsigned int args[]) {
  */
 static error_t run_switch_to_wp(unsigned int args[]) {
 	console_set_operation(WP_ADJUST);
-	
+
 	return E_SUCCESS;
 }
 
 /*
- * Runs the "show help" command.
- *
- * Expected format for args: { }
- *
- * This function always succeeds and returns E_SUCCESS;
+ * This is actually implemented after the command array, because it
+ * needs access to it.
  */
-static error_t run_help(unsigned int args[]) {
-	for (int i = 0; i < COMMAND_COUNT; i++) {
-		debug_string(commands[i].usage);
-		debug_string(CRLF);
-	}
+static error_t run_help(unsigned int args[]);
 
-	debug_string(CRLF);
-	
-	return E_SUCCESS;
-}
-
-static console_command_t commands[COMMAND_COUNT] = {
+static console_command_t commands[] = {
 	{
 		.key = 'a',
 		.arg_length = 1,
@@ -398,6 +508,34 @@ static console_command_t commands[COMMAND_COUNT] = {
 		.does_exit = 0,
 	},
 	{
+		.key = 'e',
+		.arg_length = 0,
+		.handler = run_echo,
+		.usage = "e: Begin echo mode",
+		.does_exit = 0,
+	},
+	{
+		.key = 'f',
+		.arg_length = 0,
+		.handler = run_paste_file,
+		.usage = "f: Paste a command file",
+		.does_exit = 0,
+	},
+	{
+		.key = 'g',
+		.arg_length = 3,
+		.handler = run_set_gamma,
+		.usage = "g <color-index> <raw-brightness> <gamma-value>: Set gamma table",
+		.does_exit = 0,
+	},
+	{
+		.key = 'G',
+		.arg_length = 0,
+		.handler = run_dump_gamma,
+		.usage = "G: Dump gamma table",
+		.does_exit = 0,
+	},
+	{
 		.key = 'h',
 		.arg_length = 2,
 		.handler = run_set_heat_limit,
@@ -408,7 +546,7 @@ static console_command_t commands[COMMAND_COUNT] = {
 		.key = 'l',
 		.arg_length = 0,
 		.handler = run_reload_config,
-		.usage = "l: Reload configuration from flash",
+		.usage = "l: Reload configuration and gamma table from flash",
 		.does_exit = 0,
 	},
 	{
@@ -436,7 +574,7 @@ static console_command_t commands[COMMAND_COUNT] = {
 		.key = 's',
 		.arg_length = 0,
 		.handler = run_save_config,
-		.usage = "s: Save configuration to flash",
+		.usage = "s: Save configuration and gamma table to flash",
 		.does_exit = 0,
 	},
 	{
@@ -461,6 +599,26 @@ static console_command_t commands[COMMAND_COUNT] = {
 		.does_exit = 0,
 	},
 };
+#define COMMAND_COUNT (sizeof(commands) / sizeof(console_command_t))
+#define MAX_ARG_LEN 3
+
+/*
+ * Runs the "show help" command.
+ *
+ * Expected format for args: { }
+ *
+ * This function always succeeds and returns E_SUCCESS;
+ */
+static error_t run_help(unsigned int args[]) {
+	for (int i = 0; i < COMMAND_COUNT; i++) {
+		console_write(commands[i].usage);
+		console_write(CRLF);
+	}
+
+	console_write(CRLF);
+
+	return E_SUCCESS;
+}
 
 static const char *PROGRAM_ID =
 	"vaporware build " GIT_VERSION_ID CRLF;
@@ -523,38 +681,38 @@ Sensor   Limit
 */
 
 
-	debug_string(PROGRAM_ID);
+	console_write(PROGRAM_ID);
 
-	debug_string(MODULE_ADDRESS); debug_hex(config.my_address, 2); debug_string(CRLF CRLF);
+	console_write(MODULE_ADDRESS); console_int_02x(config.my_address); console_write(CRLF CRLF);
 
-	debug_string(LED_SETTINGS_HEAD);
+	console_write(LED_SETTINGS_HEAD);
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		int phy = config.physical_led[i];
 
-		debug_string("  ");
-		debug_hex(i, 1);
-		debug_string("    ");
-		debug_hex(phy, 1);
-		debug_string("  ");
-		debug_hex(config.white_correction[phy], 4);
-		debug_string("      ");
-		debug_hex(config.led_color[phy], 1);
-		debug_string(CRLF);
+		console_write("  ");
+		console_int_01x(i);
+		console_write("    ");
+		console_int_01x(phy);
+		console_write("  ");
+		console_int_04x(config.white_correction[phy]);
+		console_write("      ");
+		console_int_01x(config.led_color[phy]);
+		console_write(CRLF);
 	}
-	debug_string(CRLF);
+	console_write(CRLF);
 
-	debug_string(HEAT_SETTINGS_HEAD);
+	console_write(HEAT_SETTINGS_HEAD);
 
 	for (int i = 0; i < HEAT_SENSOR_LEN; i++) {
-		debug_string("     ");
-		debug_hex(i, 1);
-		debug_string("   ");
-		debug_hex(config.heat_limit[i], 4);
-		debug_string(CRLF);
+		console_write("     ");
+		console_int_01x(i);
+		console_write("   ");
+		console_int_04x(config.heat_limit[i]);
+		console_write(CRLF);
 	}
-	debug_string(CRLF);
+	console_write(CRLF);
 
-	debug_string(CONSOLE_PROMPT);
+	console_write(CONSOLE_PROMPT);
 }
 
 /*
@@ -589,11 +747,11 @@ static console_command_t *get_command(char key) {
  */
 static error_t parse_args(char *line, unsigned int *args, int arg_length) {
 	int pos = 0;
-	
+
 	// Skip over the command-key and following space.
 	SKIP_WHILE(isalnum, line, pos);
 	SKIP_WHILE(isspace, line, pos);
-	
+
 
 	for (int arg = 0; arg < arg_length; arg++) {
 		if (line[pos] == '\0') {
@@ -608,7 +766,7 @@ static error_t parse_args(char *line, unsigned int *args, int arg_length) {
 
 		SKIP_WHILE(isspace, line, pos);
 	}
-	
+
 	return E_SUCCESS;
 }
 
@@ -640,36 +798,36 @@ int run_command_prompt() {
 	char line[LINE_LENGTH];
 	unsigned int args[MAX_ARG_LEN];
 
-	debug_getline(line, LINE_LENGTH);
+	console_getline(line, LINE_LENGTH);
 
 	console_command_t *comm = get_command(line[0]);
 	if (comm) {
 		error_t error = parse_args(line, args, comm->arg_length);
 		if (error != E_SUCCESS) {
-			
+
 			if (error == E_MISSING_ARGS) {
-				debug_string(ARGUMENTS_ARE_MISSING);
+				console_write(ARGUMENTS_ARE_MISSING);
 			} else if (error == E_ARG_FORMAT) {
-				debug_string(ARGUMENTS_ARE_INVALID);
+				console_write(ARGUMENTS_ARE_INVALID);
 			} else {
-				debug_string(UNKNOWN_PARSER_ERROR);
+				console_write(UNKNOWN_PARSER_ERROR);
 			}
 
-			debug_string(USAGE);
-			debug_string(comm->usage);
-			debug_string(CRLF);
-			
+			console_write(USAGE);
+			console_write(comm->usage);
+			console_write(CRLF);
+
 			return 0;
 		}
-		
+
 		if (comm->handler(args) != E_SUCCESS) {
-			debug_string(ERROR_RUNNING_COMMAND);
+			console_write(ERROR_RUNNING_COMMAND);
 			return 0;
 		}
 
 		return comm->does_exit;
 	} else {
-		debug_string(WRONG_COMMAND);
+		console_write(WRONG_COMMAND);
 		return 0;
 	}
 }

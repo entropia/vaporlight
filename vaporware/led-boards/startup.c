@@ -4,7 +4,8 @@
 #include "heat.h"
 #include "led.h"
 #include "main.h"
-#include "usart.h"
+#include "usart1.h"
+#include "usart2.h"
 
 #include "stm_include/stm32/rcc.h"
 #include "stm_include/stm32/gpio.h"
@@ -88,7 +89,7 @@ void (*volatile interrupts[])() __attribute__ ((section (".isr_vector"))) = {
 	unexpected_interrupt, /* 0x00c8: unused */
 	unexpected_interrupt, /* 0x00cc: unused */
 	unexpected_interrupt, /* 0x00d0: unused */
-	unexpected_interrupt, /* 0x00d4: USART1 */
+	isr_usart1, /* 0x00d4: USART1 */
 	isr_usart2, /* 0x00d8: USART2 */
 	unexpected_interrupt, /* 0x00dc: unused */
 	unexpected_interrupt, /* 0x00e0: unused */

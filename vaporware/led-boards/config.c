@@ -1,10 +1,8 @@
 #include "config.h"
-#include "stm_include/stm32/flash.h"
 
-#ifdef TRACE_FLASH
-	#include "usart.h"
-#endif
+#include "console.h"
 #include "debug.h"
+#include "flash.h"
 
 #define REPEAT(value,length) { [0 ... (length - 1)] = value }
 
@@ -34,7 +32,8 @@ config_entry_t config = {
  * Entry size with status word: sizeof(config_entry_t) + sizeof(uint16_t)
  * Entry count = Page size / Entry size
  */
-#define ENTRY_COUNT (CONFIG_PAGE_SIZE / (sizeof(config_entry_t) + sizeof(uint16_t)))
+#define ENTRY_COUNT (FLASH_PAGE_SIZE * CONFIG_PAGES /             \
+		     (sizeof(config_entry_t) + sizeof(uint16_t)))
 typedef struct {
 	uint16_t entry_status[ENTRY_COUNT];
 
@@ -84,90 +83,6 @@ error_t load_config() {
 }
 
 /*
- * Unlocks the flash memory for programming.
- */
-static error_t flash_unlock() {
-	if (FLASH_CR & FLASH_LOCK) {
-		FLASH_KEYR = FLASH_KEY1;
-		FLASH_KEYR = FLASH_KEY2;
-
-		// Check if unlock was successful.
-		if (FLASH_CR & FLASH_LOCK) {
-			error(ER_BUG, STR_WITH_LEN("Flash unlocking failed"), EA_PANIC);
-		}
-
-		// Enable programming
-		FLASH_CR |= FLASH_PG;
-	}
-	
-	return E_SUCCESS;
-}
-
-/*
- * Locks the flash memory. Programming is no longer possible
- */
-static error_t flash_lock() {
-	FLASH_CR |= FLASH_LOCK;
-	return E_SUCCESS;
-}
-
-/*
- * Checks the flash status for errors.
- */
-static error_t flash_check_error() {
-	// Wait for write to finish
-	// Need to wait one more cycle, see erratum 2.7
-	__asm("nop");
-	while (FLASH_SR & FLASH_BSY);
-
-	if (FLASH_SR & (FLASH_PGERR | FLASH_WRPRTERR)) {
-		return E_FLASH_WRITE;
-	} else {
-		return E_SUCCESS;
-	}
-}
-
-/*
- * Writes a word to flash and checks it afterwards.
- */
-static error_t flash_write_check(uint16_t *address, uint16_t value) {
-	error_t error;
-	
-	*address = value;
-		
-	error = flash_check_error();
-	if (error != E_SUCCESS) return error;
-
-	if (*address != value) return E_FLASH_WRITE;
-
-	return E_SUCCESS;
-}
-
-/*
- * Erases the configuration page in flash.
- */
-static error_t flash_erase_config_page() {
-	FLASH_CR |= FLASH_PER;
-	FLASH_AR = (uint32_t) &config_page;
-	FLASH_CR |= FLASH_STRT;
-	
-	error_t error = flash_check_error();
-	if (error) return error;
-
-	// Verify
-	uint16_t *start = (uint16_t*) &config_page;
-	for (uint16_t *i = start;
-	     i < start + CONFIG_PAGE_SIZE/sizeof(uint16_t);
-	     i++) {
-		if (*i != 0xffff) {
-			return E_FLASH_WRITE;
-		}
-	}
-	
-	return E_SUCCESS;
-}
-
-/*
  * Saves the configuration to flash.
  */
 error_t save_config() {
@@ -205,22 +120,19 @@ error_t save_config() {
 #ifdef TRACE_FLASH
 		debug_string("erase");
 #endif
-		error = flash_erase_config_page();
-		if (error != E_SUCCESS) return error;
+		error = flash_erase_page(&config_page);
+		if (error != E_SUCCESS) goto out;
 		
 		return save_config();
 	}
 
-	// Save the new configuration word by word.
-
-	uint16_t *src = (uint16_t*) &config;
-	uint16_t *dest = (uint16_t*) &config_page.entries[unused];
-
-	_Static_assert(sizeof(config_entry_t) % sizeof(uint16_t) == 0, "config_entry_t must be repadded!");
-	for (int i = 0; i < sizeof(config_entry_t) / sizeof(uint16_t); i++) {
-		error = flash_write_check(dest + i, src[i]);
-		if (error != E_SUCCESS) return error;
-	}
+	// Save the new configuration.
+	_Static_assert(sizeof(config_entry_t) % sizeof(uint16_t) == 0,
+		       "config_entry_t must be repadded!");
+	
+	error = flash_copy(&config_page.entries[unused], &config,
+			   sizeof(config_entry_t) / sizeof(uint16_t));
+	if (error != E_SUCCESS) goto out;
 
 #ifdef TRACE_FLASH
 	debug_string("copy done");
@@ -228,18 +140,18 @@ error_t save_config() {
 
 	// The configuration was written successfully. Now update the status words.
 	error = flash_write_check(config_page.entry_status + last_in_use, CONFIG_ENTRY_OLD);
-	if (error != E_SUCCESS) return error;
+	if (error != E_SUCCESS) goto out;
 
 	error = flash_write_check(config_page.entry_status + unused, CONFIG_ENTRY_IN_USE);
-	if (error != E_SUCCESS) return error;
+	if (error != E_SUCCESS) goto out;
 
 #ifdef TRACE_FLASH
 	debug_string("status updated");
 #endif
 
+out:
 	flash_lock();
-
-	return E_SUCCESS;
+	return error;
 }
 
 /*
@@ -271,11 +183,11 @@ int config_valid() {
 	// Check if the module has been given a valid address.
 	// Warn if the address is the broadcast address.
 	if (config.my_address == 0xff) {
-		debug_string(ADDRESS_IS_INVALID);
+		console_write(ADDRESS_IS_INVALID);
 		valid = 0;
 	}
 	if (config.my_address == 0xfe) {
-		debug_string(ADDRESS_IS_BROADCAST);
+		console_write(ADDRESS_IS_BROADCAST);
 	}
 
 	// Check that the LED permutation is really a valid permutation
@@ -289,7 +201,7 @@ int config_valid() {
 	}
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		if (led_seen[i] != 1) {
-			debug_string(LED_PERMUTATION_IS_INVALID);
+			console_write(LED_PERMUTATION_IS_INVALID);
 			valid = 0;
 		}
 	}
@@ -300,7 +212,7 @@ int config_valid() {
 		    config.led_color[i] != GREEN &&
 		    config.led_color[i] != BLUE &&
 		    config.led_color[i] != WHITE) {
-			debug_string(LED_COLOR_IS_INVALID);
+			console_write(LED_COLOR_IS_INVALID);
 			valid = 0;
 		}
 	}

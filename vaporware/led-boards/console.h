@@ -21,6 +21,62 @@ typedef enum {
 #define MAX_BASE 36
 
 /*
+ * Low-level functions wrapping usart1.
+ */
+
+/*
+ * Prints one character on the console.
+ */
+void console_putchar(const char message);
+
+/*
+ * Prints raw data on the console.
+ */
+void console_write_raw(const char *message, int length);
+
+/*
+ * Prints a string on the console.
+ */
+#define console_write(str) console_write_raw(STR_WITH_LEN(str))
+
+/*
+ * Prints an integer to the console, formatting it in the given base
+ * and padding it to the given minimum width with the given padding
+ * character. Abbreviating macros are available, following the format
+ * conventions of printf.
+ */
+void console_int(int value, int base, int min_width, char padding);
+
+#define console_int_d(value)   console_int(value, 10, 0, ' ')
+#define console_int_0d(value)  console_int(value, 10, 0, '0')
+#define console_int_4d(value)  console_int(value, 10, 4, ' ')
+#define console_int_x(value)   console_int(value, 16, 0, ' ')
+#define console_int_0x(value)  console_int(value, 16, 0, '0')
+#define console_int_01x(value) console_int(value, 16, 1, '0')
+#define console_int_02x(value) console_int(value, 16, 2, '0')
+#define console_int_04x(value) console_int(value, 16, 4, '0')
+
+/*
+ * Returns the next character received on the console.
+ * This function blocks until a character is available.
+ *
+ * If an error condition is signalled *during the wait*,
+ * the function returns 0xff.
+ */
+char console_getchar();
+
+/*
+ * Reads a complete line into the given buffer.  The line may be at
+ * most count characters long. Any further input except for "Return"
+ * to finish the line is discarded and not echoed.
+ */
+void console_getline(char *buffer, int count);
+
+/*
+ * Functions for running the configuration console.
+ */
+
+/*
  * Asks the possible user if config mode should be selected.
  *
  * This is done by printing a message and checking if a key was

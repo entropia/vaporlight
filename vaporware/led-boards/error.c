@@ -1,6 +1,7 @@
 #include "error.h"
 
 #include "config.h"
+#include "console.h"
 #include "debug.h"
 #include "led.h"
 
@@ -82,7 +83,7 @@ void error(err_reason_t reason, char *message, int length, err_action_t action) 
 		led_set_state(LED_STOP);
 		
 		dled_blink((int) reason);
-		debug_write(message, length);
+		console_write_raw(message, length);
 		
 		// Reset the system
 		SCB_AIRCR |= SCB_AIRCR_SYSRESETREQ;
@@ -92,7 +93,7 @@ void error(err_reason_t reason, char *message, int length, err_action_t action) 
 		
 		while (1) {
 			dled_blink((int) reason);
-			debug_write(message, length);
+			console_write_raw(message, length);
 		}
 		
 		break;

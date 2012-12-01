@@ -4,7 +4,6 @@
 
 #include "config.h"
 #include "console.h"
-#include "debug.h"
 #include "term.h"
 
 /*
@@ -38,43 +37,43 @@ static const char *HELP_LINE =
  * WP_ADJUST input mask.
  */
 void show_status_wp() {
-	debug_string(TERM_CLEAR);
+	console_write(TERM_CLEAR);
 
-	debug_string(ROW_LED_INDEX);
+	console_write(ROW_LED_INDEX);
 	for (int i = 0; i < MODULE_LENGTH; i++) {
-		debug_int(i, 4);
-		debug_string(" ");
+		console_int_4d(i);
+		console_write(" ");
 	}
 
-	debug_string(CRLF CRLF);
+	console_write(CRLF CRLF);
 	
-	debug_string(ROW_WHITEPOINT);
+	console_write(ROW_WHITEPOINT);
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		if (selected_led == i && selected_line == L_WHITEPOINT) {
-			debug_string(TERM_INVERT);
+			console_write(TERM_INVERT);
 		}
 		
 		int phy = config.physical_led[i];
-		debug_hex(config.white_correction[phy], 4);
+		console_int_04x(config.white_correction[phy]);
 
-		debug_string(TERM_STANDARD " ");
+		console_write(TERM_STANDARD " ");
 	}
 
-	debug_string(CRLF CRLF);
+	console_write(CRLF CRLF);
 
-	debug_string(ROW_BRIGHTNESS);
+	console_write(ROW_BRIGHTNESS);
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		if (selected_led == i && selected_line == L_BRIGHTNESS) {
-			debug_string(TERM_INVERT);
+			console_write(TERM_INVERT);
 		}
 		
-		debug_hex(brightnesses[i], 2);
+		console_int_02x(brightnesses[i]);
 
-		debug_string(TERM_STANDARD "   ");
+		console_write(TERM_STANDARD "   ");
 	}
 
-	debug_string(CRLF CRLF);
-	debug_string(HELP_LINE);
+	console_write(CRLF CRLF);
+	console_write(HELP_LINE);
 }
 
 static void inc16_unless_overflow(uint16_t *data, int16_t delta) {
@@ -111,11 +110,7 @@ static void inc_selected(int16_t delta) {
 		}
 		break;
 	default:
-#ifdef SIMULATION
-		debug_string("BUG: Unknown value for selected_line");
-#else
 		error(ER_BUG, STR_WITH_LEN("Unknown value for selected_line"), EA_PANIC);
-#endif
 		break;
 	}
 }
@@ -123,25 +118,25 @@ static void inc_selected(int16_t delta) {
 static void run_direct_edit() {
 	// First, place the cursor at the right value:
 	// Reset to top left.
-	debug_string(TERM_CURSOR_RESET);
+	console_write(TERM_CURSOR_RESET);
 	// Move to correct line
 	int down = (selected_line == L_WHITEPOINT) ?
 		2 : 4;
 	for (int i = 0; i < down; i++) {
-		debug_string("\n");
+		console_write("\n");
 	}
 	// Move to correct column
 	int right = strlen(ROW_WHITEPOINT) + selected_led * 5;
 	for (int i = 0; i < right; i++) {
-		debug_string(TERM_CURSOR_RIGHT);
+		console_write(TERM_CURSOR_RIGHT);
 	}
 
 	// Second, erase the value there.
-	debug_string("    ");
+	console_write("    ");
 	if (selected_line == L_WHITEPOINT) {
-		debug_string("\b\b\b\b");
+		console_write("\b\b\b\b");
 	} else {
-		debug_string("\b\b");
+		console_write("\b\b");
 	}
 
 	// Get the user input
@@ -149,14 +144,14 @@ static void run_direct_edit() {
 	unsigned int input;
 	int pos = 0;
 
-	debug_getline(input_line, 4);
+	console_getline(input_line, 4);
 	if (parse_int(input_line, &pos, &input, 16) != E_SUCCESS) {
 		// If an error happens, ignore the input.
 		return;
 	}
 
 	if (selected_line == L_WHITEPOINT) {
-		// Because of the length restriction in debug_getline,
+		// Because of the length restriction in console_getline,
 		// input cannot possibly overflow.
 		int phy = config.physical_led[selected_led];
 		config.white_correction[phy] = input;
@@ -185,11 +180,11 @@ static void leds_dark() {
  * Returns 1 if the console should exit and continue with normal mode.
  */
 int run_command_wp() {
-	char input = debug_getchar();
+	char input = console_getchar();
 
 	switch(input) {
 	case 'q':
-		debug_string(TERM_CLEAR);
+		console_write(TERM_CLEAR);
 		console_set_operation(PROMPT);
 		leds_dark();
 		// Exit early here to avoid resetting the brightnesses to the stored
@@ -239,7 +234,6 @@ int run_command_wp() {
 	}
 
 	// Update all LEDs.
-#ifndef SIMULATION
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		if (led_set_brightness(config.physical_led[i], brightnesses[i]) != E_SUCCESS) {
 			error(ER_BUG, STR_WITH_LEN("Error while updating LEDs"), EA_PANIC);
@@ -249,7 +243,6 @@ int run_command_wp() {
 	if (led_send_frame()) {
 		error(ER_BUG, STR_WITH_LEN("Error while sending frame"), EA_PANIC);
 	}
-#endif
 	
 	return 0;
 }

@@ -3,7 +3,6 @@
 #include "config.h"
 #include "error.h"
 #include "fail.h"
-#include "macros.h"
 
 #include "stm_include/stm32/adc.h"
 #include "stm_include/stm32/dma.h"

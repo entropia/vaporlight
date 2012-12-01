@@ -77,12 +77,13 @@ static const uint8_t HEAT_ADC_PORTS[HEAT_SENSOR_LEN] = {
 	13,
 };
 
-// How many bits to use for the PWM.
-// Note: Remember to adapt the gamma table settings
-// when changing this.
-#define PWM_BITS 13
+// How many bits to use for the PWM.  This is now imported from the
+// Makefile in order to synchronize with make_gamma_table.py.
+// #define PWM_BITS 13
 
+// The value to which the PWM counters will be reset.
 #if PWM_BITS == 16
+	// Use 0xfffe so that a value of 0xffff is really 100% on
 	#define PWM_RELOAD 0xfffe
 #else
 	#define PWM_RELOAD ((1 << PWM_BITS) - 1)
@@ -119,9 +120,9 @@ static const int HEAT_FAIL_TRESHOLD = 20;
 // This should be the value that the Flash contains when not programmed.
 static const uint8_t EEPROM_EMPTY = 0xFF;
 
-// Size of the config page. This must be a multiple of the flash page size and
-// the linker script must be edited accordingly.
-#define CONFIG_PAGE_SIZE 1024
+// Size of the config page in flash pages. When changing, the linker script
+// must be edited accordingly.
+#define CONFIG_PAGES 1
 
 // Values of configuration entry status.
 static const uint16_t CONFIG_ENTRY_EMPTY = 0xffff; // Should be default Flash value.

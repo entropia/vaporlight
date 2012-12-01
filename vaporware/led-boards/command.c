@@ -3,7 +3,7 @@
 #include "config.h"
 #include "debug.h"
 #include "led.h"
-#include "usart.h"
+#include "usart2.h"
 
 /*
  * The commands that may arrive on the USART.
@@ -53,7 +53,7 @@ static uint8_t command_filter(uint8_t command) {
  * appropriately.
  */
 void command_init() {
-	usart_set_filter(command_filter);
+	usart2_set_filter(command_filter);
 }
 
 /*
