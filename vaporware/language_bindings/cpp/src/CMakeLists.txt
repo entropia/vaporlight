@@ -1,4 +1,5 @@
 add_subdirectory(lib)
+add_subdirectory(util)
 
 if(BUILD_SHELL MATCHES ON)
 	add_subdirectory(shell)
