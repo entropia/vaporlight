@@ -1,5 +1,14 @@
 add_subdirectory(lib)
+add_subdirectory(util)
 
-add_subdirectory(shell)
+if(BUILD_SHELL MATCHES ON)
+	add_subdirectory(shell)
+else()
+	message("Won't build the shell")
+endif()
 
-add_subdirectory(fade)
+if(BUILD_FADE MATCHES ON)
+	add_subdirectory(fade)
+else()
+	message("Won't build the fade-program")
+endif()

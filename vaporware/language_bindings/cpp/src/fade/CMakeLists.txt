@@ -6,5 +6,6 @@ add_executable(fade
 
 target_link_libraries(fade
 	vaporpp
+	vputils
 	boost_program_options
 )

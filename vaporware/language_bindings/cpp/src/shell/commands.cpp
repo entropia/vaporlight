@@ -21,7 +21,7 @@
 
 #include "../lib/rgba_color.hpp"
 
-#include "ids.hpp"
+#include "../util/ids.hpp"
 
 void set_leds(vlpp::client& cl, const std::string& leds, const std::string& color) {
 	vlpp::rgba_color col(color);
