@@ -57,7 +57,7 @@ int main(int argc, char**argv) {
 			 "sets the server-port")
 			("leds,l", bpo::value<uint16_t>(&led_count)->default_value(0), 
 			 "sets the number of leds")
-			("alpha,a", bpo::value<uint8_t>(&alpha)->default_value(0xff), 
+			("alpha,a", bpo::value<uint8_t>(&alpha)->default_value(UINT8_MAX), 
 			 "sets the alpha-channel")
 			("timestep,T", bpo::value<double>(&timestep)->default_value(0.1),
 			 "sets the time between lightchanges");
@@ -72,11 +72,11 @@ int main(int argc, char**argv) {
 	
 	vlpp::client client(server, token, port);
 	
-	uint16_t color_degree_counter = 0;
+	uint8_t color_degree_counter = 0;
 	double color_degree;
 	while(true){
-		color_degree_counter+=100;
-		color_degree = (double)color_degree_counter / UINT16_MAX;
+		++color_degree_counter;
+		color_degree = (double)color_degree_counter / UINT8_MAX;
 		vlpp::rgba_color tmp = calc_deg_color(color_degree);
 		tmp.alpha = alpha;
 		for(uint16_t i = 0; i < led_count; ++i){ 

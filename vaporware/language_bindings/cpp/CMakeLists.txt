@@ -31,6 +31,9 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Release")
 	endif()
 endif()
 
+option(BUILD_SHELL "build-shell" ON)
+option(BUILD_FADE "build-fade" ON)
+
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib)
 
