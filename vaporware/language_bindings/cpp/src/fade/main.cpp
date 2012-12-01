@@ -29,6 +29,7 @@
 #include <boost/program_options.hpp>
 
 #include "../lib/client.hpp"
+#include "../util/ids.hpp"
 
 #include "color_calculation.hpp"
 
@@ -43,7 +44,8 @@ int main(int argc, char**argv) {
 	string server;
 	string token;
 	uint16_t port;
-	uint16_t led_count;
+	std::string LED_string;
+	std::vector<uint16_t> LEDs;
 	uint8_t alpha;
 	double timestep;
 	
@@ -55,9 +57,8 @@ int main(int argc, char**argv) {
 			("server,s", bpo::value<std::string>(&server), "sets the servername")
 			("port, p", bpo::value<uint16_t>(&port)->default_value(vlpp::client::DEFAULT_PORT),
 			 "sets the server-port")
-			("leds,l", bpo::value<uint16_t>(&led_count)->default_value(0), 
-			 "sets the number of leds")
-			("alpha,a", bpo::value<uint8_t>(&alpha)->default_value(0xff), 
+			("leds,l", bpo::value<std::string>(&LED_string), "sets the number of leds")
+			("alpha,a", bpo::value<uint8_t>(&alpha)->default_value(UINT8_MAX), 
 			 "sets the alpha-channel")
 			("timestep,T", bpo::value<double>(&timestep)->default_value(0.1),
 			 "sets the time between lightchanges");
@@ -70,17 +71,24 @@ int main(int argc, char**argv) {
 		return 0;
 	}
 	
+	LEDs = str_to_ids(LED_string);
+	if (LEDs.empty()){
+		std::cerr << "Error: You need to provide the "
+			"IDs of at least one LED." << std::endl;
+		return 1;
+	}
+	
 	vlpp::client client(server, token, port);
 	
-	uint16_t color_degree_counter = 0;
+	uint8_t color_degree_counter = 0;
 	double color_degree;
 	while(true){
-		color_degree_counter+=100;
-		color_degree = (double)color_degree_counter / UINT16_MAX;
+		++color_degree_counter;
+		color_degree = (double)color_degree_counter / UINT8_MAX;
 		vlpp::rgba_color tmp = calc_deg_color(color_degree);
 		tmp.alpha = alpha;
-		for(uint16_t i = 0; i < led_count; ++i){ 
-			client.set_led(i,tmp);
+		for(auto id: LEDs){ 
+			client.set_led(id,tmp);
 		}
 		client.flush();
 		usleep( (useconds_t)(1000000*timestep) );
