@@ -74,6 +74,10 @@ uint8_t hex_to_byte(char highbyte, char lowbyte) {
 
 
 std::ostream& operator<<(std::ostream& stream, const vlpp::rgba_color& col){
-	stream << std::hex << std::setw(2) << "#" << (int)col.r << (int)col.g << (int)col.b << (int)col.alpha;
+	stream << "#" << std::hex << std::setfill('0') 
+	       << std::setw(2) << (int)col.r 
+	       << std::setw(2) << (int)col.g
+	       << std::setw(2) << (int)col.b
+	       << std::setw(2) << (int)col.alpha; 
 	return stream;
 }
