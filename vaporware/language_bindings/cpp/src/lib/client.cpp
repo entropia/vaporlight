@@ -100,6 +100,12 @@ void vlpp::client::flush() {
 	_impl->flush();
 }
 
+std::vector<char>& vlpp::client::access_buffer(){
+	if(!_impl){
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp:client");
+	}
+	return _impl->cmd_buffer;
+}
 
 ///////// now: the private stuff
 

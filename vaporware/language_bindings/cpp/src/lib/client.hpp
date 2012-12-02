@@ -82,7 +82,7 @@ class client {
 		/**
 		 * @brief cleans up the object.
 		 */
-		~client();
+		virtual ~client();
 		
 		/**
 		 * @brief authenticate at the server
@@ -115,6 +115,14 @@ class client {
 		 */
 		void flush();
 		
+	protected:
+		/**
+		 * @brief Gives you direct access to the internal buffer. NEVER use this, unless
+		 *        you REALLY know what you are doing.
+		 * @return a reference to the internal buffer.
+		 * @throws vlpp::uninitialized_error if this is not initialized correctly
+		 */
+		std::vector<char>& access_buffer();
 		
 	private:
 		// we are using the pimpl-idiom to decrease the
