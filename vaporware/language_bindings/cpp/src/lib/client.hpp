@@ -128,7 +128,7 @@ class client {
 		// we are using the pimpl-idiom to decrease the
 		// compiletime and dependencies for users of this class:
 		class client_impl;
-		std::unique_ptr<client_impl> _impl;
+		client_impl* _impl;
 };
 
 /**

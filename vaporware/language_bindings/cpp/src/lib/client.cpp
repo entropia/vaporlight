@@ -58,35 +58,42 @@ vlpp::client::client(const std::string &server, const std::string &token, uint16
 }
 
 vlpp::client::client(client&& other){
-	_impl.swap(other._impl);
+	if(_impl){
+		delete _impl;
+	}
+	_impl = other._impl;
 }
 
 vlpp::client& vlpp::client::operator=(client&& other){
-	_impl.swap(other._impl);
+	if(_impl){
+		delete _impl;
+	}
+	_impl = other._impl;
 	return *this;
 }
 
 vlpp::client::~client() {
+	delete _impl;
 }
 
 
 void vlpp::client::authenticate(const std::string& token){
 	if(!_impl){
-		throw vlpp::uninitialized_error("uninitialized use of a vlpp:client");
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
 	}
 	_impl->authenticate(token);
 }
 
 void vlpp::client::set_led(uint16_t led_id, const rgba_color &col) {
 	if(!_impl){
-		throw vlpp::uninitialized_error("uninitialized use of a vlpp:client");
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
 	}
 	_impl->set_led(led_id, col);
 }
 
 void vlpp::client::set_leds(const std::vector<uint16_t> &led_ids, const rgba_color &col) {
 	if(!_impl){
-		throw vlpp::uninitialized_error("uninitialized use of a vlpp:client");
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
 	}
 	for (auto led: led_ids) {
 		set_led(led, col);
@@ -95,14 +102,14 @@ void vlpp::client::set_leds(const std::vector<uint16_t> &led_ids, const rgba_col
 
 void vlpp::client::flush() {
 	if(!_impl){
-		throw vlpp::uninitialized_error("uninitialized use of a vlpp:client");
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
 	}
 	_impl->flush();
 }
 
 std::vector<char>& vlpp::client::access_buffer(){
 	if(!_impl){
-		throw vlpp::uninitialized_error("uninitialized use of a vlpp:client");
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
 	}
 	return _impl->cmd_buffer;
 }
