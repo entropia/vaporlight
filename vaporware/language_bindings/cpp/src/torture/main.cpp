@@ -94,7 +94,7 @@ int main(int argc, char**argv) {
 		std::vector<std::thread> threads;
 		for(auto LED: LEDs){
 			threads.push_back(std::thread(control_single_LED, std::ref(client), 
-						      std::ref(m), LED, max_sleep_time ));
+				std::ref(m), LED, max_sleep_time ));
 		}
 		for(auto& t: threads){
 			t.join();
@@ -115,10 +115,12 @@ void control_single_LED(vlpp::client& cl, std::mutex& m, uint16_t LED, useconds_
 	std::uniform_int_distribution<useconds_t> distribution(1,max_sleep_time);
 	while(true){
 		for(auto col: {WHITE, BLACK}){
-			m.lock();
-			cl.set_led(LED, col);
-			cl.flush();
-			m.unlock();
+			//create new scope to enable usage lock-guard
+			{
+				std::lock_guard<std::mutex> lock(m);
+				cl.set_led(LED, col);
+				cl.flush();
+			}
 			usleep(distribution(generator));
 		}
 	}
