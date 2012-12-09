@@ -33,7 +33,7 @@ endif()
 
 option(BUILD_SHELL "build-shell" ON)
 option(BUILD_FADE "build-fade" ON)
-option(BUILD_TORTURE "build-torture" ON)
+option(BUILD_BLINKER "build-blinker" ON)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib)
