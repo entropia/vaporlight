@@ -57,46 +57,83 @@ vlpp::client::client(const std::string &server, const std::string &token, uint16
 	_impl(new vlpp::client::client_impl(server, token, port)) {
 }
 
+vlpp::client::client(client&& other){
+	if(_impl){
+		delete _impl;
+	}
+	_impl = other._impl;
+}
+
+vlpp::client& vlpp::client::operator=(client&& other){
+	if(_impl){
+		delete _impl;
+	}
+	_impl = other._impl;
+	return *this;
+}
+
 vlpp::client::~client() {
+	delete _impl;
+}
+
+
+void vlpp::client::authenticate(const std::string& token){
+	if(!_impl){
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
+	}
+	_impl->authenticate(token);
 }
 
 void vlpp::client::set_led(uint16_t led_id, const rgba_color &col) {
+	if(!_impl){
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
+	}
 	_impl->set_led(led_id, col);
 }
 
 void vlpp::client::set_leds(const std::vector<uint16_t> &led_ids, const rgba_color &col) {
+	if(!_impl){
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
+	}
 	for (auto led: led_ids) {
 		set_led(led, col);
 	}
 }
 
 void vlpp::client::flush() {
+	if(!_impl){
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
+	}
 	_impl->flush();
 }
 
+std::vector<char>& vlpp::client::access_buffer(){
+	if(!_impl){
+		throw vlpp::uninitialized_error("uninitialized use of a vlpp::client");
+	}
+	return _impl->cmd_buffer;
+}
 
 ///////// now: the private stuff
 
 
 vlpp::client::client_impl::client_impl(const std::string &servername, const std::string &token, uint16_t port):
 	_socket(_io_service) {
-	//first check the token:
-	if (token.length() != TOKEN_SIZE) {
-		throw std::invalid_argument("invalid token (wrong size)");
-	}
-	
 	tcp::resolver _resolver(_io_service);
 	tcp::resolver::query q(servername, std::to_string(port));
 	auto endpoints = _resolver.resolve(q);
 	boost::asio::connect(_socket, endpoints);
 	if (!_socket.is_open()) {
-		throw std::runtime_error("cannot open socket");
+		throw vlpp::connection_failure("cannot open socket");
 	}
 	authenticate(token);
 }
 
 void vlpp::client::client_impl::authenticate(const std::string &token) {
-	assert(token.length() == TOKEN_SIZE);
+	//first check the token:
+	if (token.length() != TOKEN_SIZE) {
+		throw std::invalid_argument("invalid token (wrong size)");
+	}
 	std::array<char,TOKEN_SIZE+1> auth_data;
 	auth_data[0] = OP_AUTHENTICATE;
 	for (size_t i = 0; i < TOKEN_SIZE; ++i) {
@@ -105,7 +142,7 @@ void vlpp::client::client_impl::authenticate(const std::string &token) {
 	boost::system::error_code e;
 	boost::asio::write(_socket, boost::asio::buffer(&(auth_data[0]), auth_data.size()) , e);
 	if (e) {
-		throw std::runtime_error("write failed");
+		throw vlpp::connection_failure("write failed");
 	}
 }
 
@@ -125,6 +162,7 @@ void vlpp::client::client_impl::flush() {
 	boost::asio::write(_socket, boost::asio::buffer(&(cmd_buffer[0]), cmd_buffer.size()), e);
 	cmd_buffer.clear();
 	if (e) {
-		throw std::runtime_error("write failed");
+		throw vlpp::connection_failure("write failed");
 	}
 }
+

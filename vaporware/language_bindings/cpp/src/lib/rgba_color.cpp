@@ -48,6 +48,17 @@ vlpp::rgba_color::rgba_color(std::string colorcode) {
 }
 
 
+bool vlpp::rgba_color::operator==(const rgba_color& other) const{
+	if(r != other.r) return false;
+	if(g != other.g) return false;
+	if(b != other.b) return false;
+	if(alpha != other.alpha) return false;
+	return true;
+}
+
+bool vlpp::rgba_color::operator!=(const rgba_color& other) const{
+	return !(*this == other);
+}
 
 uint8_t hex_to_byte(char highbyte, char lowbyte) {
 	if (!isxdigit(highbyte) || !isxdigit(lowbyte)) {
@@ -74,6 +85,10 @@ uint8_t hex_to_byte(char highbyte, char lowbyte) {
 
 
 std::ostream& operator<<(std::ostream& stream, const vlpp::rgba_color& col){
-	stream << std::hex << std::setw(2) << "#" << (int)col.r << (int)col.g << (int)col.b << (int)col.alpha;
+	stream << "#" << std::hex << std::setfill('0') 
+	       << std::setw(2) << (int)col.r 
+	       << std::setw(2) << (int)col.g
+	       << std::setw(2) << (int)col.b
+	       << std::setw(2) << (int)col.alpha; 
 	return stream;
 }

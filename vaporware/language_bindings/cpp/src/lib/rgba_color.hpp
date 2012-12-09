@@ -63,6 +63,20 @@ class rgba_color {
 		rgba_color(std::string colorcode);
 		
 		/**
+		 * @brief Compares two colors.
+		 * @param the other color
+		 * @return true if the colors are identical, false otherwise
+		 */
+		bool operator==(const rgba_color& other) const;
+		
+		/**
+		 * @brief Compares two colors.
+		 * @param the other color
+		 * @return false if the colors are identical, true otherwise
+		 */
+		bool operator!=(const rgba_color& other) const;
+		
+		/**
 		 * @brief the red-value
 		 */
 		uint8_t r = 0;

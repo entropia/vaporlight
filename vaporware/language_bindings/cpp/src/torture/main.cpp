@@ -22,6 +22,10 @@
 #include <map>
 #include <cmath>
 #include <cctype>
+#include <random>
+#include <chrono>
+#include <thread>
+#include <mutex>
 
 #include <unistd.h>
 
@@ -31,11 +35,20 @@
 #include "../lib/client.hpp"
 #include "../util/ids.hpp"
 
-#include "color_calculation.hpp"
+const vlpp::rgba_color WHITE(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX);
+const vlpp::rgba_color BLACK(0,0,0, UINT8_MAX);
+
+/**
+ * @brief control_single_LED
+ * @param cl
+ * @param m
+ * @param LED
+ */
+void control_single_LED(vlpp::client& cl, std::mutex& m, uint16_t LED, useconds_t max_sleep_time);
 
 
 /*
- * this program will just fade through most colors
+ * this program will torture anyone in the room
  */
 int main(int argc, char**argv) {
 	using std::string;
@@ -46,23 +59,19 @@ int main(int argc, char**argv) {
 	uint16_t port;
 	std::string LED_string;
 	std::vector<uint16_t> LEDs;
-	uint8_t alpha;
-	double timestep;
+	useconds_t max_sleep_time;
 	
 	try{
 		bpo::options_description desc;
 		desc.add_options()
 				("help,h", "print this help")
-				//("verbose,v", "be verbose")
 				("token,t", bpo::value<std::string>(&token), "sets the authentication-token")
 				("server,s", bpo::value<std::string>(&server), "sets the servername")
 				("port, p", bpo::value<uint16_t>(&port)->default_value(vlpp::client::DEFAULT_PORT),
 				 "sets the server-port")
 				("leds,l", bpo::value<std::string>(&LED_string), "sets the number of leds")
-				("alpha,a", bpo::value<uint8_t>(&alpha)->default_value(UINT8_MAX), 
-				 "sets the alpha-channel")
-				("timestep,T", bpo::value<double>(&timestep)->default_value(0.1),
-				 "sets the time between lightchanges");
+				("max-sleep,S", bpo::value<useconds_t>(&max_sleep_time)->default_value(100000),
+				 "changes the maximum sleep-time");
 		
 		bpo::variables_map vm;
 		bpo::store(bpo::parse_command_line(argc, argv, desc) ,vm);
@@ -80,21 +89,17 @@ int main(int argc, char**argv) {
 		}
 		
 		vlpp::client client(server, token, port);
-		
-		uint16_t color_degree_counter = 0;
-		double color_degree;
-		while(true){
-			color_degree_counter += UINT8_MAX/4;
-			color_degree = (double)color_degree_counter / UINT16_MAX;
-			vlpp::rgba_color tmp = calc_deg_color(color_degree);
-			//std::cout << tmp << std::endl;
-			tmp.alpha = alpha;
-			for(auto id: LEDs){ 
-				client.set_led(id,tmp);
-			}
-			client.flush();
-			usleep( (useconds_t)(1000000*timestep) );
+		std::mutex m;
+		// this is, where the actual programm starts:
+		std::vector<std::thread> threads;
+		for(auto LED: LEDs){
+			threads.push_back(std::thread(control_single_LED, std::ref(client), 
+				std::ref(m), LED, max_sleep_time ));
 		}
+		for(auto& t: threads){
+			t.join();
+		}
+		
 	}
 	catch(std::exception& e){
 		std::cerr << "Error: " << e.what() << std::endl;
@@ -103,3 +108,20 @@ int main(int argc, char**argv) {
 	
 }
 
+
+void control_single_LED(vlpp::client& cl, std::mutex& m, uint16_t LED, useconds_t max_sleep_time){
+	std::default_random_engine generator(
+		(unsigned long)std::chrono::system_clock::now().time_since_epoch().count());
+	std::uniform_int_distribution<useconds_t> distribution(1,max_sleep_time);
+	while(true){
+		for(auto col: {WHITE, BLACK}){
+			//create new scope to enable usage lock-guard
+			{
+				std::lock_guard<std::mutex> lock(m);
+				cl.set_led(LED, col);
+				cl.flush();
+			}
+			usleep(distribution(generator));
+		}
+	}
+}
