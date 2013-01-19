@@ -56,25 +56,35 @@ class rgba_color {
 		rgba_color(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = UINT8_MAX);
 		
 		/**
-		 * @brief rgba_color
-		 * @param colorcode
+		 * @brief Constructs a color from a string.
+		 * @param colorcode the color as a string (like #ffffff or #ffffffff)
 		 * @throws std::invalid_argument if the string cannot be converted to a color
 		 */
 		rgba_color(std::string colorcode);
 		
 		/**
 		 * @brief Compares two colors.
-		 * @param the other color
+		 * @param other the other color
 		 * @return true if the colors are identical, false otherwise
 		 */
 		bool operator==(const rgba_color& other) const;
 		
 		/**
 		 * @brief Compares two colors.
-		 * @param the other color
+		 * @param other the other color
 		 * @return false if the colors are identical, true otherwise
 		 */
 		bool operator!=(const rgba_color& other) const;
+		
+		/**
+		 * @brief Compares two colors and provides an implementation-defined ordering.
+		 *
+		 * This is primarily to enable usage in sorted containers like std::set.
+		 * 
+		 * @param other the other color.
+		 * @return true if this is ordered in front of the other color.
+		 */
+		bool operator<(const rgba_color& other) const;
 		
 		/**
 		 * @brief the red-value

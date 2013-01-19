@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <cstdio>
 #include <stdexcept>
 #include <map>
 #include <cmath>
@@ -26,6 +27,7 @@
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <memory>
 
 #include <unistd.h>
 
@@ -38,93 +40,102 @@
 
 
 
-/**
- * @brief control_single_LED
- * @param cl
- * @param m
- * @param LED
- */
-void control_LEDs(vlpp::client& cl, std::mutex& m, std::vector<uint16_t> LEDs, useconds_t max_sleep_time, const std::vector<vlpp::rgba_color> &colors);
+void control_LEDs(vlpp::client& cl, std::mutex& m, std::vector<uint16_t> LEDs);
 
+void fade_to(vlpp::client& cl, std::mutex& m, const std::vector<uint16_t>& LEDs, 
+		useconds_t fade_time, const vlpp::rgba_color& old_color,
+		const vlpp::rgba_color& new_color);
+
+struct settings{
+	static int fade_steps;
+	static useconds_t max_sleep_time;
+	static useconds_t max_fade_time;
+	static std::vector<vlpp::rgba_color> colorset;
+};
+int settings::fade_steps = UINT8_MAX;
+useconds_t settings::max_sleep_time = 1000;
+useconds_t settings::max_fade_time  = 1000;
+std::vector<vlpp::rgba_color> settings::colorset = BLACK_WHITE;
 
 /*
- * this program will torture anyone in the room
+ * this program will make all lights blink
  */
-int main(int argc, char**argv) {
+int main ( int argc, char**argv ) {
 	using std::string;
-	namespace bpo = boost::program_options;
+	
+	using boost::program_options::store;
+	using boost::program_options::notify;
+	using boost::program_options::parse_command_line;
+	using boost::program_options::options_description;
+	using boost::program_options::value;
+	using boost::program_options::variables_map;
 	
 	string server;
 	string token;
 	uint16_t port;
 	std::string LED_string;
 	std::vector<uint16_t> LEDs;
-	useconds_t max_sleep_time;
 	bool async = false;
 	std::string colorset_str;
 	
-	try{
-		bpo::options_description desc;
+	try {
+		options_description desc;
 		desc.add_options()
-				("help,h", "print this help")
-				("token,t", bpo::value<std::string>(&token), "sets the authentication-token")
-				("server,s", bpo::value<std::string>(&server), "sets the servername")
-				("port, p", bpo::value<uint16_t>(&port)->default_value(vlpp::client::DEFAULT_PORT),
-				 "sets the server-port")
-				("leds,l", bpo::value<std::string>(&LED_string), "sets the number of leds")
-				("max-sleep,S", bpo::value<useconds_t>(&max_sleep_time)->default_value(100000),
-				 "changes the maximum sleep-time")
-				("async,a", "makes the LEDs blink asynchronus.")
-				("colors,c", bpo::value<std::string>(&colorset_str), "sets the used colorset");
+			( "help,h", "print this help" )
+			( "token,t", value<std::string>(&token), "sets the authentication-token" )
+			( "server,s", value<std::string>(&server), "sets the servername" )
+			( "port, p", value<uint16_t>(&port)->default_value ( vlpp::client::DEFAULT_PORT ),
+				"sets the server-port" )
+			( "leds,l", value<std::string>(&LED_string), "sets the number of leds" )
+			( "max-sleep,S", value<useconds_t>(&settings::max_sleep_time), 
+				"changes the maximum sleep-time" )
+			( "async,a", "makes the LEDs blink asynchronus." )
+			( "colors,c", value<std::string>(&colorset_str), "sets the used colorset" )
+			( "max-fade,f", value<useconds_t>(&settings::max_fade_time), "changes the maximum fade time")
+			( "fade-steps,F", value<int>(&settings::fade_steps), "sets the number of steps for fading");
 		
-		bpo::variables_map vm;
-		bpo::store(bpo::parse_command_line(argc, argv, desc) ,vm);
-		bpo::notify(vm);
-		if (vm.count("help")) {
+		variables_map vm;
+		store ( parse_command_line ( argc, argv, desc ) ,vm );
+		notify ( vm );
+		if ( vm.count ( "help" ) ) {
 			std::cout << desc << std::endl;
 			return 0;
 		}
-		if (vm.count("async")) {
+		if ( vm.count ( "async" ) ) {
 			async =  true;
 		}
-		auto colorset = BLACK_WHITE;
-		if(colorset_str == "all"){
-			colorset = ALL_COLORS;
-		}
-		else if(colorset_str == "real"){
-			colorset == REAL_COLORS;
-		}
-		else if(colorset_str == "most"){
-			colorset = MOST_COLORS;
+		if ( colorset_str == "all" ) {
+			settings::colorset = ALL_COLORS;
+		} else if ( colorset_str == "real" ) {
+			settings::colorset = REAL_COLORS;
+		} else if ( colorset_str == "most" ) {
+			settings::colorset = MOST_COLORS;
 		}
 		
-		LEDs = str_to_ids(LED_string);
-		if (LEDs.empty()){
+		LEDs = str_to_ids ( LED_string );
+		if ( LEDs.empty() ) {
 			std::cerr << "Error: You need to provide the "
-				"IDs of at least one LED." << std::endl;
+				  "IDs of at least one LED." << std::endl;
 			return 1;
 		}
 		
-		vlpp::client client(server, token, port);
+		vlpp::client client ( server, token, port );
 		std::mutex m;
-		if(async){
-			// this is, where the actual programm starts:
+		if ( async ) {
 			std::vector<std::thread> threads;
-			for(auto LED: LEDs){
-				threads.push_back(std::thread(control_LEDs, std::ref(client), 
-					std::ref(m), std::vector<uint16_t>{LED}, 
-					max_sleep_time, colorset ));
+		for ( auto LED: LEDs ) {
+				threads.push_back ( std::thread (
+					control_LEDs, std::ref ( client ),
+					std::ref ( m ), std::vector<uint16_t> {LED}) );
 			}
-			for(auto& t: threads){
+		for ( auto& t: threads ) {
 				t.join();
 			}
-		}
-		else{
-			control_LEDs(client, std::ref(m), LEDs, max_sleep_time, colorset);
+		} else {
+			control_LEDs ( client, std::ref ( m ), LEDs);
 		}
 		
-	}
-	catch(std::exception& e){
+	} catch ( std::exception& e ) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return 1;
 	}
@@ -132,27 +143,53 @@ int main(int argc, char**argv) {
 }
 
 
-void control_LEDs(vlpp::client& cl, std::mutex& m, 
-		std::vector<uint16_t> LEDs, useconds_t max_sleep_time, 
-		const std::vector<vlpp::rgba_color>& colors){
-	std::default_random_engine generator(
-		(unsigned long)std::chrono::system_clock::now().time_since_epoch().count());
-	std::uniform_int_distribution<useconds_t> time_distribution(1,max_sleep_time);
-	std::uniform_int_distribution<size_t> color_distribution(0, colors.size() - 1);
+void control_LEDs ( vlpp::client& cl, std::mutex& m, std::vector<uint16_t> LEDs) {
+	std::default_random_engine generator (
+		static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count()) );
+	std::uniform_int_distribution<useconds_t> sleep_time_distribution ( 0,settings::max_sleep_time );
+	std::uniform_int_distribution<useconds_t> fade_time_distribution ( 0,settings::max_fade_time );
+	std::uniform_int_distribution<size_t> color_distribution ( 0, settings::colorset.size() - 1 );
+	
 	vlpp::rgba_color last_color;
-	while(true){
-		vlpp::rgba_color tmp = colors[color_distribution(generator)];
-		if(tmp != last_color) {
+	while ( true ) {
+		vlpp::rgba_color tmp = settings::colorset[color_distribution ( generator )];
+		if ( tmp == last_color ) {
+			continue;
+		}
+		fade_to(cl, m, LEDs, fade_time_distribution(generator), last_color, tmp);
+		last_color = tmp;
+		usleep (sleep_time_distribution(generator));
+	}
+}
+
+void fade_to( vlpp::client& cl, std::mutex& m, const std::vector<uint16_t>& LEDs, 
+		useconds_t fade_time, const vlpp::rgba_color& old_color,
+		const vlpp::rgba_color& new_color){
+	useconds_t time_per_step = fade_time / settings::fade_steps;
+	for(int i=0; i < settings::fade_steps; ++i){
+		double p_new = double(i) / settings::fade_steps;
+		double p_old = 1 - p_new;
+		vlpp::rgba_color tmp{
+			// i really WANT this conversion to uint8_t:
+			uint8_t(old_color.r * p_old + new_color.r * p_new),
+			uint8_t(old_color.g * p_old + new_color.g * p_new),
+			uint8_t(old_color.b * p_old + new_color.b * p_new),
+			uint8_t(old_color.alpha * p_old + new_color.alpha * p_new)
+		};
+		{
 			std::lock_guard<std::mutex> lock(m);
-			for(auto LED: LEDs){
+			for( auto LED: LEDs ){
 				cl.set_led(LED, tmp);
 			}
 			cl.flush();
 		}
-		else{
-			continue;
+		usleep(time_per_step);
+	}
+	{
+		std::lock_guard<std::mutex> lock(m);
+		for(auto LED: LEDs){
+			cl.set_led(LED, new_color);
 		}
-		last_color = tmp;
-		usleep(time_distribution(generator));
+		cl.flush();
 	}
 }

@@ -60,6 +60,35 @@ bool vlpp::rgba_color::operator!=(const rgba_color& other) const{
 	return !(*this == other);
 }
 
+bool vlpp::rgba_color::operator<(const rgba_color& other) const{
+	if( alpha < other.alpha ) {
+		return true;
+	}
+	else if(alpha > other.alpha){
+		return false;
+	}
+	else if( r < other.r ) {
+		return true;
+	}
+	else if(r > other.r){
+		return false;
+	}
+	else if( g < other.g ) {
+		return true;
+	}
+	else if(g > other.g){
+		return false;
+	}
+	else if( b < other.b ) {
+		return true;
+	}
+	else if(b > other.b){
+		return false;
+	}
+	return false;
+}
+
+
 uint8_t hex_to_byte(char highbyte, char lowbyte) {
 	if (!isxdigit(highbyte) || !isxdigit(lowbyte)) {
 		throw std::invalid_argument("invalid colorcode");

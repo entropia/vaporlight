@@ -73,7 +73,9 @@ vlpp::client& vlpp::client::operator=(client&& other){
 }
 
 vlpp::client::~client() {
-	delete _impl;
+	if( _impl ){
+		delete _impl;
+	}
 }
 
 
