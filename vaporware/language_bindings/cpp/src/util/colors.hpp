@@ -6,6 +6,20 @@
 
 #include "../lib/rgba_color.hpp"
 
+/**
+ * @brief Converts a string to a list of colors.
+ * @param str the string
+ * @return a vector that contains the colors
+ */
+std::vector<vlpp::rgba_color> str_to_cols(const std::string& str);
+
+/**
+ * @brief converts a string to a color.
+ * @param str the string
+ * @return the color that was represented by the string
+ */
+vlpp::rgba_color str_to_col(const std::string& str);
+
 const uint8_t MAX_CHANNEL_BRIGHTNESS = UINT8_MAX;
 
 const vlpp::rgba_color WHITE(MAX_CHANNEL_BRIGHTNESS, MAX_CHANNEL_BRIGHTNESS, 
@@ -27,6 +41,11 @@ const std::vector<vlpp::rgba_color> ALL_COLORS  = {BLACK, WHITE, RED, BLUE, GREE
 	YELLOW, CYAN, MAGENTA};
 const std::vector<vlpp::rgba_color> MOST_COLORS = {WHITE, RED, BLUE, GREEN, YELLOW,
 	CYAN, MAGENTA};
+
+const std::map<std::string, std::vector<vlpp::rgba_color>> COLOR_SETS_MAP = {
+	{"b_w", BLACK_WHITE}, {"real", REAL_COLORS}, {"all", ALL_COLORS},
+	{"most", MOST_COLORS}
+};
 
 const std::map<std::string, const vlpp::rgba_color> COLOR_MAP = {
 	{"black", BLACK}, {"white", WHITE},

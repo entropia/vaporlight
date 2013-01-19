@@ -45,15 +45,19 @@ void set_leds(std::vector<uint16_t> LEDs, const vlpp::rgba_color& col);
 
 struct settings{
 	static int fade_steps;
+	static useconds_t min_sleep_time;
 	static useconds_t max_sleep_time;
+	static useconds_t min_fade_time;
 	static useconds_t max_fade_time;
 	static std::vector<vlpp::rgba_color> colorset;
 	static vlpp::client client;
 };
 int settings::fade_steps = UINT8_MAX;
+useconds_t settings::min_sleep_time = 0;
 useconds_t settings::max_sleep_time = 1000;
+useconds_t settings::min_fade_time  = 0;
 useconds_t settings::max_fade_time  = 1000;
-std::vector<vlpp::rgba_color> settings::colorset = BLACK_WHITE;
+std::vector<vlpp::rgba_color> settings::colorset = REAL_COLORS;
 vlpp::client settings::client;
 
 /*
@@ -67,51 +71,44 @@ int main ( int argc, char**argv ) {
 	uint16_t port;
 	std::string LED_string;
 	std::vector<uint16_t> LEDs;
-	bool async = false;
+	bool async = true;
 	std::string colorset_str;
 	
-	// this may not be the best style, but it is required to enforce stack-unwinding in error-cases:
+	// this try-block may not be the best style,
+	// but it is required to enforce stack-unwinding 
+	// in error-cases:
 	try {
 		boost::program_options::options_description desc;
 		using boost::program_options::value;
 		desc.add_options()
 			("help,h", "print this help")
+			("sync,y", "makes the LEDs blink asynchronus.")
 			("token,t", value<std::string>(&token), "sets the authentication-token")
 			("server,s", value<std::string>(&server), "sets the servername")
-			("port, p", value<uint16_t>(&port)->default_value ( vlpp::client::DEFAULT_PORT ),
+			("port,p", value<uint16_t>(&port)->default_value ( vlpp::client::DEFAULT_PORT ),
 				"sets the server-port")
 			("leds,l", value<std::string>(&LED_string), "sets the number of leds")
+			("min-sleep", value<useconds_t>(&settings::min_sleep_time), 
+				"changes the minimum sleep-time")
 			("max-sleep,S", value<useconds_t>(&settings::max_sleep_time), 
 				"changes the maximum sleep-time")
-			("async,a", "makes the LEDs blink asynchronus.")
 			("colors,c", value<std::string>(&colorset_str), "sets the used colorset")
+			("min-fade", value<useconds_t>(&settings::min_fade_time), "changes the minimum fade time")
 			("max-fade,f", value<useconds_t>(&settings::max_fade_time), "changes the maximum fade time")
 			("fade-steps,F", value<int>(&settings::fade_steps), "sets the number of steps for fading");
 		
 		boost::program_options::variables_map vm;
 		boost::program_options::store (boost::program_options::parse_command_line(argc, argv, desc), vm);
 		boost::program_options::notify ( vm );
+		
 		if(vm.count("help")){
 			std::cout << desc << std::endl;
 			return 0;
 		}
-		if(vm.count("async")){
-			async =  true;
-		}
-		if(colorset_str == "all"){
-			settings::colorset = ALL_COLORS;
-		} else if(colorset_str == "real"){
-			settings::colorset = REAL_COLORS;
-		} else if(colorset_str == "most"){
-			settings::colorset = MOST_COLORS;
-		}
 		
+		vm.count("sync") && (async = false);
+		settings::colorset = str_to_cols(colorset_str);
 		LEDs = str_to_ids(LED_string);
-		if(LEDs.empty()){
-			std::cerr << "Error: You need to provide the "
-				  "IDs of at least one LED." << std::endl;
-			return 1;
-		}
 		
 		settings::client = vlpp::client(server, token, port);
 		if(async){
@@ -137,8 +134,10 @@ void control_LEDs(std::vector<uint16_t> LEDs) {
 	// first set up the random-number-generators:
 	std::default_random_engine generator(
 		static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count()) );
-	std::uniform_int_distribution<useconds_t> sleep_time_distribution(0,settings::max_sleep_time);
-	std::uniform_int_distribution<useconds_t> fade_time_distribution(0,settings::max_fade_time);
+	std::uniform_int_distribution<useconds_t> sleep_time_distribution(
+			settings::min_sleep_time, settings::max_sleep_time);
+	std::uniform_int_distribution<useconds_t> fade_time_distribution(
+			settings::min_fade_time, settings::max_fade_time);
 	std::uniform_int_distribution<size_t> color_distribution(0, settings::colorset.size() - 1);
 	
 	// and now start the actual work:
