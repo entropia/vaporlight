@@ -69,6 +69,7 @@ vlpp::client& vlpp::client::operator=(client&& other){
 		delete _impl;
 	}
 	_impl = other._impl;
+	other._impl = nullptr;
 	return *this;
 }
 
