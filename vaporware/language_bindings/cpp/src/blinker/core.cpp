@@ -7,7 +7,7 @@
 
 #include "settings.hpp"
 
-
+#include <cstdio>
 
 void control_LEDs(std::vector<uint16_t> LEDs) {
 	// first set up the random-number-generators:
@@ -22,6 +22,9 @@ void control_LEDs(std::vector<uint16_t> LEDs) {
 	// and now start the actual work:
 	vlpp::rgba_color last_color;
 	while(true){
+		if(settings::thread_return_flag){
+			return;
+		}
 		vlpp::rgba_color tmp = settings::colorset[color_distribution(generator)];
 		if(tmp == last_color){
 			continue;

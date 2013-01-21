@@ -21,12 +21,15 @@
 #include <stdexcept>
 #include <thread>
 
+#include <unistd.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
 #include "../lib/client.hpp"
 #include "../util/ids.hpp"
 #include "../util/colors.hpp"
+#include "../util/signalhandling.hpp"
 
 #include "settings.hpp"
 #include "core.hpp"
@@ -50,6 +53,7 @@ int main(int argc, char**argv){
 	// but it is required to enforce stack-unwinding 
 	// in error-cases:
 	try {
+		signalhandling::init({SIGINT});
 		boost::program_options::options_description desc;
 		using boost::program_options::value;
 		desc.add_options()
@@ -83,17 +87,25 @@ int main(int argc, char**argv){
 		LEDs = str_to_ids(LED_string);
 		
 		settings::client = vlpp::client(server, token, port);
+		std::vector<std::thread> threads;
 		if(async){
-			std::vector<std::thread> threads;
 			for(auto LED: LEDs){
-				threads.emplace_back(control_LEDs, std::vector<uint16_t> {LED});
-			}
-			for(auto& thread: threads){
-				thread.join();
+				threads.emplace_back(control_LEDs, std::vector<uint16_t>{LED});
 			}
 		} else {
-			control_LEDs(LEDs);
+			threads.emplace_back(control_LEDs, LEDs);
 		}
+		while(true){
+			if(signalhandling::get_last_signal()){
+				settings::thread_return_flag = true;
+				break;
+			}
+			usleep(50000);
+		}
+		for(auto& thread: threads){
+			thread.join();
+		}
+		return 0;
 	} catch(std::exception& e){
 		std::cerr << "Error: " << e.what() << std::endl;
 		return 1;

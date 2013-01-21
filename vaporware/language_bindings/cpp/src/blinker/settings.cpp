@@ -7,3 +7,4 @@ useconds_t settings::min_fade_time  = 0;
 useconds_t settings::max_fade_time  = 100000;
 std::vector<vlpp::rgba_color> settings::colorset = REAL_COLORS;
 vlpp::client settings::client;
+std::atomic<bool> settings::thread_return_flag(false);

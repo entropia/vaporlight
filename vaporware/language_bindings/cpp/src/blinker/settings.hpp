@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <unistd.h>
+#include <atomic>
 
 #include "../lib/client.hpp"
 #include "../util/colors.hpp"
@@ -15,6 +16,7 @@ struct settings{
 	static useconds_t max_fade_time;
 	static std::vector<vlpp::rgba_color> colorset;
 	static vlpp::client client;
+	static std::atomic<bool> thread_return_flag;
 };
 
 #endif
