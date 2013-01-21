@@ -2,7 +2,7 @@ project(vaporpp)
 cmake_minimum_required(VERSION 2.8)
 
 #we need C++11:
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror" )
 
 
 #Get as many warnings as possible:
@@ -11,7 +11,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic" )
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	message("using clang++")
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic" )
 else()
 	message("unknown compiler")
 endif()
@@ -23,7 +23,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 elseif(CMAKE_BUILD_TYPE MATCHES "Release")
 	message("creating Release-Version")
 	add_definitions( -DNDEBUG )
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
 	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3"  )
 	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -33,6 +33,7 @@ endif()
 
 option(BUILD_SHELL "build-shell" ON)
 option(BUILD_FADE "build-fade" ON)
+option(BUILD_BLINKER "build-blinker" ON)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib)

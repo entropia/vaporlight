@@ -67,7 +67,8 @@ int main(int argc, char**argv) {
 		{"a", "add"},
 		{"q", "quit"},
 		{"h", "help"},
-		{"f", "flush"}
+		{"f", "flush"},
+		{"auth", "authenticate"}
 	};
 	while (readln(line, "-> ")) {
 		boost::algorithm::trim(line);
@@ -107,6 +108,20 @@ int main(int argc, char**argv) {
 		}
 		else if (cmd.first == "quit") {
 			break;
+		}
+		// note: not yet documented for the problem that 
+		// whitespace will get stripped out to early:
+		else if (cmd.first == "authenticate") {
+			if (cmd.second.size() != 1) {
+				std::cerr << "Error: you have to provide a token" << std::endl;
+				continue;
+			}
+			try{
+				client.authenticate(cmd.second[0]);
+			}
+			catch(std::invalid_argument& e){
+				std::cerr << "Error: " << e.what() << std::endl;
+			}
 		}
 		else {
 			std::cerr << "Error: unknown command: “" << cmd.first << "”" << std::endl;
