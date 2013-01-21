@@ -18,10 +18,11 @@
 
 #include "client.hpp"
 
+#include <array>
+#include <algorithm>
 #include <cassert>
 
 #include <boost/asio.hpp>
-#include <array>
 
 using boost::asio::io_service;
 using boost::asio::ip::tcp;
@@ -58,18 +59,12 @@ vlpp::client::client(const std::string &server, const std::string &token, uint16
 }
 
 vlpp::client::client(client&& other){
-	if(_impl){
-		delete _impl;
-	}
 	_impl = other._impl;
+	other._impl = nullptr;
 }
 
 vlpp::client& vlpp::client::operator=(client&& other){
-	if(_impl){
-		delete _impl;
-	}
-	_impl = other._impl;
-	other._impl = nullptr;
+	std::swap(_impl, other._impl);
 	return *this;
 }
 

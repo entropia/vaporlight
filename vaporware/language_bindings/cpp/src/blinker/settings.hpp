@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 #include "../lib/client.hpp"
-//#include "../util/ids.hpp"
 #include "../util/colors.hpp"
 
 struct settings{

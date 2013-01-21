@@ -57,7 +57,7 @@ int main(int argc, char**argv){
 			("sync,y", "makes the LEDs blink asynchronus.")
 			("token,t", value<std::string>(&token), "sets the authentication-token")
 			("server,s", value<std::string>(&server), "sets the servername")
-			("port,p", value<uint16_t>(&port)->default_value ( vlpp::client::DEFAULT_PORT ),
+			("port,p", value<uint16_t>(&port)->default_value(vlpp::client::DEFAULT_PORT),
 				"sets the server-port")
 			("leds,l", value<std::string>(&LED_string), "sets the number of leds")
 			("min-sleep", value<useconds_t>(&settings::min_sleep_time), 

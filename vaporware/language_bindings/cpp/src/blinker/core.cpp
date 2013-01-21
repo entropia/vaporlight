@@ -41,10 +41,10 @@ void fade_to(const std::vector<uint16_t>& LEDs,
 		double p_old = 1 - p_new;
 		vlpp::rgba_color tmp{
 			// i really WANT this narrowing conversion:
-			uint8_t(old_color.r * p_old + new_color.r * p_new),
-			uint8_t(old_color.g * p_old + new_color.g * p_new),
-			uint8_t(old_color.b * p_old + new_color.b * p_new),
-			uint8_t(old_color.alpha * p_old + new_color.alpha * p_new)
+			uint8_t(old_color.r*p_old + new_color.r*p_new),
+			uint8_t(old_color.g*p_old + new_color.g*p_new),
+			uint8_t(old_color.b*p_old + new_color.b*p_new),
+			uint8_t(old_color.alpha*p_old + new_color.alpha*p_new)
 		};
 		set_leds(LEDs, tmp);
 		usleep(time_per_step);
