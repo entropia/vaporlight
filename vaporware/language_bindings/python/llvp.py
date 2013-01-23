@@ -12,14 +12,15 @@ class FilelikeController(object):
     def _send(self, command):
         self._filelike.sendall(command.to_str())
 
-    def set_rgb(self, led, (r, g, b)):
-        self._send(SetLedCommand(led, (r, g, b, 255)))
+    def set_rgb(self, led, rgb, a=255):
+        self._send(SetLedCommand(led, (rgb[0], rgb[1], rgb[2], a)))
 
-    def set_rgba(self, led, (r, g, b, a)):
-        self._send(SetLedCommand(led, (r, g, b, a)))
+    def set_rgba(self, led, rgba):
+        self._send(SetLedCommand(led, rgba))
 
-    def set_rgb_a(self, led, (r, g, b), a):
-        self._send(SetLedCommand(led, (r, g, b, a)))
+    def set_rgb_a(self, led, rgb, a=255):
+        """deprecated. for backwards compatibility only."""
+        self.set_rgb(led, rgb, a)
 
     def strobe(self):
         self._send(StrobeCommand())
@@ -32,7 +33,7 @@ class SocketController(FilelikeController):
 
     def __init__(self, token, host, port=7534):
         sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print "connecting to %s, %s" % (host, port)
+        print("connecting to %s, %s" % (host, port))
         sck.connect((host, port))
         super(SocketController, self).__init__(sck, token)
 
@@ -73,7 +74,7 @@ class BusProtocol(object):
         while True:
             if first_byte_after_cmd != 0x55:
                 while ord((yield)) != 0x55:
-                    print "skipping"
+                    print("skipping")
                     pass
 
             addr = ord((yield))
