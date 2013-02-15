@@ -1,7 +1,7 @@
 import llvp
 
 TOKEN = "sixteen letters."
-HOST = "inferno.intranet.entropia.de"
+HOST = "vaporlight.intranet.entropia.de"
 PORT = 7534
 NUM_LEDS = 20
 
