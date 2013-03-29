@@ -1,0 +1,5 @@
+Sets:
+	Module 0, Led 0 to Red
+	Module 0, Led 1 to Green
+	Module 0, Led 2 to Blue
+
