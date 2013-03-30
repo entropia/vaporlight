@@ -31,6 +31,7 @@ Notes:
 """
 
 import argparse
+import copy
 import signal
 import socket
 import sys
@@ -46,17 +47,19 @@ class Model(object):
         self.observers = []
         self.modules = modules
         self.leds_per_module = leds_per_module
-        self.leds = [[[0, 0, 0]
+        self.back_buffer = [[[0, 0, 0]
             for x in range(self.leds_per_module)]
             for y in range(self.modules)]
+        self.front_buffer = copy.deepcopy(self.back_buffer)
 
     def set_led(self, module, position, value):
-        self.leds[module][position // 3][position % 3] = value
+        self.back_buffer[module][position // 3][position % 3] = value
 
     def add_observer(self, func):
         self.observers.append(func)
 
     def strobe(self):
+        self.front_buffer = copy.deepcopy(self.back_buffer)
         for observer in self.observers:
             observer()
 
@@ -109,7 +112,7 @@ class GtkView(object):
                     x * cell_size_w, y * cell_size_h,
                     cell_size_w, cell_size_h)
                 cc.set_line_width(line_width)
-                cc.set_source_rgb(*self.model.leds[y][x])
+                cc.set_source_rgb(*self.model.front_buffer[y][x])
                 cc.fill()
 
         db.flush()
