@@ -36,6 +36,7 @@ import signal
 import socket
 import sys
 import threading
+import traceback
 
 import cairo
 from gi.repository import Gtk, GObject
@@ -152,12 +153,12 @@ class NetworkByteSource(object):
                 client_address = server_sck.accept()
                 yield from self._read_bytes(client_address[0])
             except ProtocolViolation:
-                pass
+                traceback.print_exc(file=sys.stderr)
             finally:
                 try:
                     client_address[0].close()
                 except Exception:
-                    pass
+                    traceback.print_exc(file=sys.stderr)
 
     def _read_bytes(self, sck):
         while True:
