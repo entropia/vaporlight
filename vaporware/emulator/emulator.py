@@ -33,6 +33,7 @@ Notes:
 import argparse
 import signal
 import socket
+import sys
 import threading
 
 import cairo
@@ -133,15 +134,12 @@ class GtkView(object):
         return False
 
 
-class Server(threading.Thread):
+class NetworkByteSource(object):
 
-    def __init__(self, model, addr):
+    def __init__(self, addr):
         self.addr = addr
-        self.model = model
-        threading.Thread.__init__(self)
-        self.daemon = True
 
-    def run(self):
+    def get_bytes(self):
         server_sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_sck.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_sck.bind(self.addr)
@@ -149,7 +147,7 @@ class Server(threading.Thread):
         while True:
             try:
                 client_address = server_sck.accept()
-                self.handle(client_address[0])
+                yield from self._read_bytes(client_address[0])
             except ProtocolViolation:
                 pass
             finally:
@@ -158,8 +156,36 @@ class Server(threading.Thread):
                 except Exception:
                     pass
 
-    def handle(self, sck):
-        for frame in self.read_frames(sck):
+    def _read_bytes(self, sck):
+        while True:
+            data = sck.recv(1024)
+            if data == None:
+                break # Connection closed
+            yield from data
+
+
+class StdinByteSource(object):
+
+    def get_bytes(self):
+        source = sys.stdin.buffer # .buffer is in binary mode
+        while True:
+            byte = source.read(1)
+            if byte:
+                yield ord(byte)
+            else:
+                return
+
+
+class Controller(threading.Thread):
+
+    def __init__(self, model, byte_source):
+        self.byte_source = byte_source
+        self.model = model
+        threading.Thread.__init__(self)
+        self.daemon = True
+
+    def run(self):
+        for frame in self.read_frames(self.byte_source.get_bytes()):
             if frame == [0xff]:
                 self.model.strobe()
             elif len(frame) >= 1 and frame[0] != 0xff:
@@ -168,7 +194,7 @@ class Server(threading.Thread):
             else:
                 raise ProtocolViolation()
 
-    def read_frames(self, sck):
+    def read_frames(self, byte_stream):
         STATE_IGNORE = 0 # I
         STATE_NORMAL = 1 # hate
         STATE_ESCAPE = 2 # Python
@@ -181,7 +207,7 @@ class Server(threading.Thread):
         payload_buf = []
         state = STATE_IGNORE
 
-        for num in self.read_bytes(sck):
+        for num in byte_stream:
 
             if state == STATE_IGNORE:
                 if num == START_MARK:
@@ -206,13 +232,6 @@ class Server(threading.Thread):
                 else:
                     raise ProtocolViolation()
 
-    def read_bytes(self, sck):
-        while True:
-            data = sck.recv(1024)
-            if data == None:
-                break # Connection closed
-            yield from data
-
 
 class ProtocolViolation(Exception):
     pass
@@ -235,12 +254,20 @@ def main():
     par.add_argument('-l', '--leds', metavar="X",
         dest='leds', action='store', type=int, default=5,
         help='number of leds per module')
-
+    par.add_argument('-i', '--stdin',
+        dest='use_stdin', action='store_true', default=False,
+        help='read from stdin instead of a socket')
     args = par.parse_args()
+
+    if args.use_stdin:
+        bytesrc = StdinByteSource()
+    else:
+        bytesrc = NetworkByteSource((args.addr, args.port))
+
     model = Model(args.modules, args.leds)
     view = GtkView(model)
-    server = Server(model, (args.addr, args.port))
-    server.start()
+    ctrl = Controller(model, bytesrc)
+    ctrl.start()
     view.run()
 
 
