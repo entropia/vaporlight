@@ -163,7 +163,7 @@ class NetworkByteSource(object):
     def _read_bytes(self, sck):
         while True:
             data = sck.recv(1024)
-            if data == None:
+            if not data:
                 break # Connection closed
             yield from data
 
