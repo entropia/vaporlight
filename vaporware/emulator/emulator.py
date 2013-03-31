@@ -193,6 +193,7 @@ class Controller(threading.Thread):
 
     def run(self):
         for frame in self.read_frames(self.byte_source.get_bytes()):
+            print(frame)
             if frame == [0xfe]:
                 self.model.strobe()
             elif len(frame) >= 1 and frame[0] != 0xff:
