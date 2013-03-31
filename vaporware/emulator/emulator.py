@@ -54,7 +54,10 @@ class Model(object):
         self.front_buffer = copy.deepcopy(self.back_buffer)
 
     def set_led(self, module, position, value):
-        self.back_buffer[module][position // 3][position % 3] = value
+        try:
+            self.back_buffer[module][position // 3][position % 3] = value
+        except IndexError as e:
+            pass
 
     def add_observer(self, func):
         self.observers.append(func)
