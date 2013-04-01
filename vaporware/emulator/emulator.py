@@ -48,21 +48,24 @@ class Model(object):
         self.observers = []
         self.modules = modules
         self.leds_per_module = leds_per_module
-        self.back_buffer = [[[0, 0, 0]
+        self.back_buffer = [[[0, 0, 0] # [r, g, b]
             for x in range(self.leds_per_module)]
             for y in range(self.modules)]
         self.front_buffer = copy.deepcopy(self.back_buffer)
 
-    def set_led(self, module, position, value):
+    def set_value(self, module, channel, value):
+        """set a channel brightness; takes effect when `strobe()` is called"""
         try:
-            self.back_buffer[module][position // 3][position % 3] = value
+            self.back_buffer[module][channel // 3][channel % 3] = value
         except IndexError as e:
             pass
 
     def add_observer(self, func):
+        """add a function thats called once per strobe command"""
         self.observers.append(func)
 
     def strobe(self):
+        """apply led state changes"""
         self.front_buffer = copy.deepcopy(self.back_buffer)
         for observer in self.observers:
             observer()
@@ -78,7 +81,7 @@ class GtkView(object):
     def run(self):
         signal.signal(signal.SIGINT, signal.SIG_DFL) # fix ctrl-c
         GObject.threads_init()
-        Gtk.main()
+        Gtk.main() # blocks until window is closed
 
     def init(self):
         self.window = Gtk.Window(
@@ -129,7 +132,7 @@ class GtkView(object):
         cr.paint()
         return False
 
-    def on_configure(self, widget, event, data=None):
+    def on_configure(self, widget, event, data=None): # window resized
         if self.double_buffer != None:
             self.double_buffer.finish()
             self.double_buffer = None
@@ -180,7 +183,7 @@ class StdinByteSource(object):
             if byte:
                 yield ord(byte)
             else:
-                return
+                return # EOF
 
 
 class Controller(threading.Thread):
@@ -191,21 +194,21 @@ class Controller(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
 
-    def run(self):
+    def run(self): # runs in its own thread
         for frame in self.read_frames(self.byte_source.get_bytes()):
             print(frame)
             if frame == [0xfe]:
                 self.model.strobe()
-            elif len(frame) >= 1 and frame[0] != 0xff:
+            elif len(frame) >= 1:
                 for channel, value in enumerate(frame[1:]):
-                    self.model.set_led(frame[0], channel, value)
+                    self.model.set_value(frame[0], channel, value)
             else:
                 raise ProtocolViolation()
 
     def read_frames(self, byte_stream):
-        STATE_IGNORE = 0 # I
-        STATE_NORMAL = 1 # hate
-        STATE_ESCAPE = 2 # Python
+        STATE_IGNORE = 0
+        STATE_NORMAL = 1
+        STATE_ESCAPE = 2
 
         ESCAPE_MARK = 0x54
         START_MARK = 0x55
@@ -217,19 +220,22 @@ class Controller(threading.Thread):
 
         for num in byte_stream:
 
+            # start state; synchronize to start of a frame
             if state == STATE_IGNORE:
                 if num == START_MARK:
                     state = STATE_NORMAL
 
+            # somewhere within a frame
             elif state == STATE_NORMAL:
                 if num == ESCAPE_MARK:
                     state = STATE_ESCAPE
-                elif num == START_MARK:
+                elif num == START_MARK: # start of new frame
                     yield payload_buf
                     payload_buf = []
                 else:
                     payload_buf.append(num)
 
+            # within a frame, after an escape mark
             elif state == STATE_ESCAPE:
                 if num == ESCAPE_ESCAPED:
                     payload_buf.append(ESCAPE_MARK)
