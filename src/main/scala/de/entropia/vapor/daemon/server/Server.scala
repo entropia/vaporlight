@@ -10,7 +10,7 @@ import java.util.concurrent.Executors
 import org.jboss.netty.handler.codec.frame.FrameDecoder
 import grizzled.slf4j.Logging
 import de.entropia.vapor.mixer.Mixer
-import de.entropia.vapor.config.Config
+import de.entropia.vapor.daemon.config.Settings
 
 
 sealed abstract class ServerMsg()
@@ -23,7 +23,7 @@ case class ServerQuitMsg() extends ServerMsg()
 /**
  * A netty-based vaporlight server.
  */
-class Server(val config: Config, val mixer: Mixer) {
+class Server(val settings: Settings, val mixer: Mixer) {
 
   val channels: ChannelGroup = new DefaultChannelGroup
   val clients: ChannelLocal[Client] = new ChannelLocal[Client](false)
@@ -39,7 +39,7 @@ class Server(val config: Config, val mixer: Mixer) {
     bootstrap.setPipelineFactory(new ChannelPipelineFactory {
       def getPipeline = Channels.pipeline(
         new VaporlightFrameDecoder(),
-        new VaporlightChannelHandler(channels, clients, config, mixer))
+        new VaporlightChannelHandler(channels, clients, settings, mixer))
     })
     channels.add(bootstrap.bind(new InetSocketAddress(7534)))
   }
@@ -76,7 +76,7 @@ class VaporlightFrameDecoder() extends FrameDecoder with Logging {
 /**
  * Handles a single connection.
  */
-class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLocal[Client], val config: Config, val mixer: Mixer) extends SimpleChannelUpstreamHandler with Logging {
+class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLocal[Client], val settings: Settings, val mixer: Mixer) extends SimpleChannelUpstreamHandler with Logging {
   info("channel created")
 
   override def handleUpstream(ctx: ChannelHandlerContext, e: org.jboss.netty.channel.ChannelEvent) {
@@ -89,7 +89,7 @@ class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLoc
 
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     channels.add(e.getChannel)
-    local.set(ctx.getChannel, new Client(config, mixer))
+    local.set(ctx.getChannel, new Client(settings, mixer))
     local.get(ctx.getChannel).connect()
   }
 

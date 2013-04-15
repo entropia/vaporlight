@@ -3,10 +3,11 @@ package de.entropia.vapor.server
 import de.entropia.vapor.mixer.{Overlay, Mixer}
 import de.entropia.vapor.util.Color
 import grizzled.slf4j.Logging
-import de.entropia.vapor.config.{Token, Config}
+import de.entropia.vapor.daemon.config.{Settings, Token}
+import de.entropia.vapor.daemon.config.Token.Seq2TokenId
 
 
-class Client(val config: Config, val mixer: Mixer) extends Logging {
+class Client(val settings: Settings, val mixer: Mixer) extends Logging {
   var token: Option[Token] = None
   var overlay: Option[Overlay] = None
 
@@ -19,7 +20,7 @@ class Client(val config: Config, val mixer: Mixer) extends Logging {
   def auth(bytes: Seq[Byte]) {
     info("auth(%s)".format(bytes))
     overlay.map(_.free())
-    token = config.getToken(bytes)
+    token = settings.tokens.get(bytes)
     token match {
       case None =>
         overlay = None

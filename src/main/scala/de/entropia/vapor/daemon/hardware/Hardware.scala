@@ -1,9 +1,8 @@
 package de.entropia.vapor.hardware
 
 import de.entropia.vapor.util._
-import java.io.OutputStream
 import grizzled.slf4j.Logging
-import de.entropia.vapor.config.Config
+import de.entropia.vapor.daemon.config.Settings
 
 
 /**
@@ -25,6 +24,11 @@ class Hardware(val mapping: Mapping) extends Logging {
 
 object Hardware {
 
-  def apply(config: Config, rawOutputStream: OutputStream) =
-    new Hardware(new Mapping(config, new Buffer(config, new Encoder(new Framer(rawOutputStream)))))
+  def apply(settings: Settings) =
+      new Hardware(
+        new Mapping(settings,
+          new Buffer(settings,
+            new Encoder(
+              new Framer(
+                Physical.open(settings))))))
 }

@@ -3,6 +3,7 @@ package de.entropia.vapor.hardware
 import java.io.{BufferedOutputStream, OutputStream}
 import purejavacomm.{SerialPort, CommPortIdentifier}
 import java.net.{Socket, InetAddress}
+import de.entropia.vapor.daemon.config.{NetworkDeviceSettings, SerialDeviceSettings, Settings}
 
 
 /**
@@ -21,5 +22,10 @@ object Physical {
   def openSocket(host: String, port: Integer): OutputStream = {
     val socket = new Socket(InetAddress.getByName(host), port)
     new BufferedOutputStream(socket.getOutputStream);
+  }
+
+  def open(settings: Settings) = settings.device match {
+    case SerialDeviceSettings(interface) => openSerialPort(interface)
+    case NetworkDeviceSettings(host, port) => openSocket(host, port)
   }
 }

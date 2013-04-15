@@ -3,12 +3,13 @@ package de.entropia.vapor.mixer
 import de.entropia.vapor.hardware.Hardware
 import collection.mutable.ArrayBuffer
 import de.entropia.vapor.util.Color
+import de.entropia.vapor.daemon.config.Settings
 
 
 /**
  * Manages access to a single, shared, Vaporlight bus.
  */
-class Mixer(val hw: Hardware) {
+class Mixer(val settings: Settings, val hw: Hardware) {
   val delay = new Delay(minSleepMillis = 10)
   val overlays = ArrayBuffer.empty[Overlay]
 

@@ -7,7 +7,7 @@ scalaVersion := "2.10.1"
 resolvers ++= Seq(
     "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
     "sonatype-public" at "https://oss.sonatype.org/content/groups/public",
-    "sparetimelabs" at "http://www.sparetimelabs.com/maven2/"
+    "sparetimelabs" at "http://www.sparetimelabs.com/maven2"
 )
 
 libraryDependencies ++= Seq(
@@ -16,9 +16,8 @@ libraryDependencies ++= Seq(
     "io.netty" % "netty" % "3.5.10.Final",
     "ch.qos.logback" % "logback-classic" % "1.0.3",
     "org.clapper" %% "grizzled-slf4j" % "1.0.1",
-    "org.clapper" %% "argot" % "1.0.0",
     "com.sparetimelabs" % "purejavacomm" % "0.0.16" classifier "",
-    "com.escalatesoft.subcut" %% "subcut" % "2.0-SNAPSHOT"
+    "com.typesafe" % "config" % "1.0.0"
 )
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
