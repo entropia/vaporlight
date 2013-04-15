@@ -75,7 +75,7 @@ class GtkView(object):
 
     def __init__(self, model):
         self.model = model
-        model.add_observer(self.redraw)
+        model.add_observer(self.please_redraw)
         self.init()
 
     def run(self):
@@ -92,13 +92,20 @@ class GtkView(object):
             window_position="center-always")
         self.window.connect("destroy", self.on_destroy)
 
-        drawing = Gtk.DrawingArea(visible=True, can_focus=False)
-        drawing.connect("draw", self.on_draw)
-        drawing.connect("configure-event", self.on_configure)
-        self.window.add(drawing)
+        self.drawing = Gtk.DrawingArea(visible=True, can_focus=False)
+        self.drawing.connect("draw", self.on_draw)
+        self.drawing.connect("configure-event", self.on_configure)
+        self.window.add(self.drawing)
 
         self.double_buffer = None
         self.window.show()
+
+    def please_redraw(self):
+        def idle_func():
+            self.redraw()
+            self.drawing.queue_draw()
+            return False # don't reschedule automatically
+        GObject.idle_add(idle_func)
 
     def redraw(self):
         db = self.double_buffer
