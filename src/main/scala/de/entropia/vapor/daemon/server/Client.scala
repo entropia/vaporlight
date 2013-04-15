@@ -18,7 +18,6 @@ class Client(val settings: Settings, val mixer: Mixer) extends Logging {
   }
 
   def auth(bytes: Seq[Byte]) {
-    info("auth(%s)".format(bytes))
     overlay.map(_.free())
     token = settings.tokens.get(bytes)
     token match {
@@ -30,7 +29,6 @@ class Client(val settings: Settings, val mixer: Mixer) extends Logging {
   }
 
   def setLed(i: Int, color: Color) {
-    info("setLed(%d, %s)".format(i, color))
     overlay match {
       case Some(o: Overlay) =>
         o.set(i, color)
@@ -39,7 +37,6 @@ class Client(val settings: Settings, val mixer: Mixer) extends Logging {
   }
 
   def strobe() {
-    info("strobe()")
     overlay match {
       case Some(o: Overlay) =>
         o.strobe()
@@ -48,11 +45,9 @@ class Client(val settings: Settings, val mixer: Mixer) extends Logging {
   }
 
   def connect() {
-    info("connect()")
   }
 
   def disconnect() {
-    info("disconnect()")
     overlay.map(_.free())
   }
 }
