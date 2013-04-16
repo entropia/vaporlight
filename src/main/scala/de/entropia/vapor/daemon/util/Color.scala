@@ -42,6 +42,8 @@ case object Color {
   }
 
   def black = apply(0, 0, 0)
+
+  def transparent = apply(0, 0, 0, 0)
 }
 
 

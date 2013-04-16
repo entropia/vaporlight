@@ -4,7 +4,7 @@ import de.entropia.vapor.util.Color
 import collection.mutable
 
 class Overlay(val mixer: Mixer, val priority: Int) {
-  private var front = Map.empty[Int, Color].withDefaultValue(Color.black)
+  private var front = Map.empty[Int, Color].withDefaultValue(Color.transparent)
   private var frontDirty = Set.empty[Int]
   private val back = mutable.Map.empty[Int, Color]
   private val backDirty = mutable.Set.empty[Int]
