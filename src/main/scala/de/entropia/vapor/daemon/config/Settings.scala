@@ -38,9 +38,12 @@ class RichConfig(val config: Config) {
   }
 
   def getTokens(key: String): Map[TokenId, Token] = {
-    getMap(key)(_.getBytes.toList, (key, properties) => new Token(key,
-      properties.asInstanceOf[java.util.Map[String, Object]].get("priority").asInstanceOf[Int]
-    ))
+    getMap(key)(_.getBytes.toList, (key, properties) => {
+      val propertyMap = properties.asInstanceOf[java.util.Map[String, Object]].toMap
+        new Token(key,
+          propertyMap.get("priority").asInstanceOf[Option[Int]].get,
+          propertyMap.getOrElse("persistent", false).asInstanceOf[Boolean])
+    })
   }
 
   def getChannels(key: String): Map[(Int, RgbChannel), (Byte, Int)] = {
@@ -73,7 +76,7 @@ object RichConfig {
   implicit def Config2RichConfig(config: Config): RichConfig = new RichConfig(config)
 }
 
-case class Token(val id: List[Byte], val priority: Int) {
+case class Token(val id: List[Byte], val priority: Int, val persistent: Boolean) {
 }
 
 object Token {

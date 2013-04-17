@@ -11,7 +11,9 @@ import de.entropia.vapor.daemon.config.Settings
  */
 class Mixer(val settings: Settings, val hw: Hardware) {
   val delay = new Delay(minSleepMillis = 10)
-  val overlays = ArrayBuffer.empty[Overlay]
+  val background = new Overlay(this, Integer.MIN_VALUE, true)
+  val overlays = ArrayBuffer(background)
+  var allDirty = false;
 
   def run() {
     while (true) {
@@ -32,7 +34,7 @@ class Mixer(val settings: Settings, val hw: Hardware) {
     overlays.flatMap(ov => ov.dirtyLeds)
 
   private def getBlendedColor(led: Int) =
-    overlays.foldLeft(Color.black)((bg, fgOverlay) => fgOverlay.ledValues(led).blendOver(bg))
+    overlays.foldLeft(Color.black)((bg, fgOverlay) => fgOverlay.ledValues.get(led).getOrElse(Color.transparent).blendOver(bg))
 
   /**
    * Creates an overlay.
@@ -41,12 +43,17 @@ class Mixer(val settings: Settings, val hw: Hardware) {
    * Multiple overlays may use the same priority. Overlays with equal priority
    * are blended in order of creation (ie, later overlays have "higher" priority).
    */
-  def register(priority: Int) = {
+  def register(priority: Int, persistent: Boolean) = {
     synchronized {
-      val overlay = new Overlay(this, priority)
+      val overlay = new Overlay(this, priority, persistent)
       overlays.append(overlay)
       overlays.sortBy(_.priority)
       overlay
     }
+  }
+
+  def markBackgroundDirty(leds: Set[Int]) {
+    leds.foreach(background.set(_, Color.transparent))
+    background.strobe()
   }
 }
