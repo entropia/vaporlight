@@ -13,22 +13,25 @@ import de.entropia.vapor.daemon.config.Settings
  * LED states change, update messages can still be generated.
  */
 class Buffer(val settings: Settings, val encoder: Encoder) extends Logging {
-  val updates = mutable.Map[Byte, mutable.Seq[Byte]]()
+  val moduleLedStates = mutable.Map[Byte, mutable.Seq[Byte]]()
+  val dirtyModules = mutable.Set[Byte]()
 
   def set(module: Byte, position: Int, value: Byte) {
-    if (!updates.contains(module)) {
-      updates(module) = Array.fill(settings.channelCounts(module)) {
+    if (!moduleLedStates.contains(module)) {
+      moduleLedStates(module) = Array.fill(settings.channelCounts(module)) {
         0.toByte
       }
     }
-    updates(module)(position) = value
+    moduleLedStates(module)(position) = value
+    dirtyModules.add(module)
+
   }
 
   def strobe() {
-    for ((module, values) <- updates) {
+    for ((module, values) <- moduleLedStates) {
       encoder.update(module, values)
     }
     encoder.strobe()
-    updates.clear()
+    dirtyModules.clear()
   }
 }
