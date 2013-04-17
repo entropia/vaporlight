@@ -30,4 +30,10 @@ class ColorSuite extends FunSuite {
     val bg = Color(0, 0, 0, 0)
     assert(Color(0, 128, 50, 255) === fg.blendOver(bg))
   }
+
+  test("blending of a transparent color over another color") {
+    val fg = Color(100, 100, 100, 0)
+    val bg = Color(222, 222, 222, 0)
+    assert(Color(222, 222, 222, 255) === fg.blendOver(bg))
+  }
 }
