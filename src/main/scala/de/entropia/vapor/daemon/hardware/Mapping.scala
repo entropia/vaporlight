@@ -21,8 +21,11 @@ class Mapping(val settings: Settings, val buffer: Buffer) {
   }
 
   def set(led: Int, color: Color, channel: RgbChannel) {
-    val (module, position) = settings.channels(led, channel)
-    buffer.set(module, position, channel.extract(color).toByte)
+    val maybeModuleAndPosition = settings.channels.get((led, channel))
+    if (maybeModuleAndPosition.isDefined) {
+      val (module, position) = maybeModuleAndPosition.get
+      buffer.set(module, position, channel.extract(color).toByte)
+    }
   }
 
   def strobe() {
