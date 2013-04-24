@@ -22,7 +22,9 @@ object Settings {
 }
 
 abstract sealed class DeviceSettings()
+
 final case class SerialDeviceSettings(val interface: String) extends DeviceSettings
+
 final case class NetworkDeviceSettings(val host: String, val port: Int) extends DeviceSettings
 
 class RichConfig(val config: Config) {
@@ -40,9 +42,9 @@ class RichConfig(val config: Config) {
   def getTokens(key: String): Map[TokenId, Token] = {
     getMap(key)(_.getBytes.toList, (key, properties) => {
       val propertyMap = properties.asInstanceOf[java.util.Map[String, Object]].toMap
-        new Token(key,
-          propertyMap.get("priority").asInstanceOf[Option[Int]].get,
-          propertyMap.getOrElse("persistent", false).asInstanceOf[Boolean])
+      new Token(key,
+        propertyMap.get("priority").asInstanceOf[Option[Int]].get,
+        propertyMap.getOrElse("persistent", false).asInstanceOf[Boolean])
     })
   }
 
@@ -81,5 +83,6 @@ case class Token(val id: List[Byte], val priority: Int, val persistent: Boolean)
 
 object Token {
   type TokenId = List[Byte]
+
   implicit def Seq2TokenId(bytes: Seq[Byte]) = bytes.toList
 }

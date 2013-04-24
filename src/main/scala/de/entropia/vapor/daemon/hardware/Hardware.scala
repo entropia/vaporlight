@@ -25,10 +25,10 @@ class Hardware(val mapping: Mapping) extends Logging {
 object Hardware {
 
   def apply(settings: Settings) =
-      new Hardware(
-        new Mapping(settings,
-          new Buffer(settings,
-            new Encoder(
-              new Framer(
-                Physical.open(settings))))))
+    new Hardware(
+      new Mapping(settings,
+        new Buffer(settings,
+          new Encoder(
+            new Framer(
+              Physical.open(settings))))))
 }
