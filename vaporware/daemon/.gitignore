@@ -1,0 +1,17 @@
+*.bak
+*.swp
+*.tmp
+*~
+
+*.class
+*.log
+
+target
+project/boot/
+project/plugins/project/
+
+*.iml
+*.ipr
+*.iws
+.idea/
+
