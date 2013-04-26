@@ -1,9 +1,9 @@
 package de.entropia.vapor.hardware
 
-import java.io.{BufferedOutputStream, OutputStream}
+import java.io.{FileOutputStream, File, BufferedOutputStream, OutputStream}
 import purejavacomm.{SerialPort, CommPortIdentifier}
 import java.net.{Socket, InetAddress}
-import de.entropia.vapor.daemon.config.{NetworkDeviceSettings, SerialDeviceSettings, Settings}
+import de.entropia.vapor.daemon.config.{FileDeviceSettings, NetworkDeviceSettings, SerialDeviceSettings, Settings}
 
 
 /**
@@ -24,8 +24,13 @@ object Physical {
     new BufferedOutputStream(socket.getOutputStream);
   }
 
+  def openFile(path: String): OutputStream = {
+    new FileOutputStream(new File(path))
+  }
+
   def open(settings: Settings) = settings.device match {
     case SerialDeviceSettings(interface) => openSerialPort(interface)
     case NetworkDeviceSettings(host, port) => openSocket(host, port)
+    case FileDeviceSettings(path) => openFile(path)
   }
 }

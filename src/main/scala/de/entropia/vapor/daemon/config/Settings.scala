@@ -27,6 +27,8 @@ final case class SerialDeviceSettings(val interface: String) extends DeviceSetti
 
 final case class NetworkDeviceSettings(val host: String, val port: Int) extends DeviceSettings
 
+final case class FileDeviceSettings(val path: String) extends DeviceSettings
+
 class RichConfig(val config: Config) {
 
   def getDeviceSettings(baseKey: String): DeviceSettings = {
@@ -35,6 +37,7 @@ class RichConfig(val config: Config) {
     deviceType match {
       case "serial" => SerialDeviceSettings(subconf.getString("interface"))
       case "network" => NetworkDeviceSettings(subconf.getString("host"), subconf.getInt("port"))
+      case "file" => FileDeviceSettings(subconf.getString("path"))
       case _ => throw new IllegalArgumentException("invalid value: " + subconf.origin())
     }
   }
