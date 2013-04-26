@@ -17,7 +17,7 @@ class Framer(val rawDevice: OutputStream) extends Logging {
 
   def write(framePayloadBytes: Seq[Byte]) {
     // note: make sure there are no unintended byte->int conversions
-    info("writing: %s".format(framePayloadBytes))
+    debug("writing: %s".format(framePayloadBytes))
     rawDevice.write(START_MARK.toUnsignedInt)
     for (b <- framePayloadBytes) {
       b match {

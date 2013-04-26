@@ -12,7 +12,7 @@ class Hardware(val mapping: Mapping) extends Logging {
 
   /** Update a LED. Won't take effect until `strobe()` is called. */
   def set(led: Int, color: Color) = {
-    info("set(%d, %s)".format(led, color))
+    debug("set(%d, %s)".format(led, color))
     mapping.set(led, color)
   }
 
