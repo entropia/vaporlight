@@ -3,6 +3,9 @@
 import socket
 
 
+__version__ = "0.2.0"
+
+
 class FilelikeController(object):
 
     def __init__(self, f, token):
