@@ -2,10 +2,10 @@ package de.entropia.vapor.server
 
 import de.entropia.vapor.mixer.{Overlay, Mixer}
 import de.entropia.vapor.util.Color
-import grizzled.slf4j.Logging
 import de.entropia.vapor.daemon.config.{Settings, Token}
 import de.entropia.vapor.daemon.config.Token.Seq2TokenId
 import de.entropia.vapor.daemon.mixer.Manager
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 class Client(val settings: Settings, val mixer: Mixer, val manager: Manager) extends Logging {

@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
     "junit" % "junit" % "4.8.1" % "test",
     "io.netty" % "netty" % "3.5.10.Final",
     "ch.qos.logback" % "logback-classic" % "1.0.3",
-    "org.clapper" %% "grizzled-slf4j" % "1.0.1",
+    "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
     "com.sparetimelabs" % "purejavacomm" % "0.0.16" classifier "",
     "com.typesafe" % "config" % "1.0.0"
 )

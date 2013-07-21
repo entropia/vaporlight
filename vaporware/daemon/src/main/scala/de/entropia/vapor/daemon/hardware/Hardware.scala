@@ -1,8 +1,8 @@
 package de.entropia.vapor.hardware
 
 import de.entropia.vapor.util._
-import grizzled.slf4j.Logging
 import de.entropia.vapor.daemon.config.Settings
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 /**
@@ -12,7 +12,7 @@ class Hardware(val mapping: Mapping) extends Logging {
 
   /** Update a LED. Won't take effect until `strobe()` is called. */
   def set(led: Int, color: Color) = {
-    debug("set(%d, %s)".format(led, color))
+    logger.debug("set(%d, %s)".format(led, color))
     mapping.set(led, color)
   }
 

@@ -1,11 +1,11 @@
 package de.entropia.vapor.daemon
 
-import grizzled.slf4j.Logging
 import de.entropia.vapor.hardware.Hardware
 import de.entropia.vapor.mixer.Mixer
 import de.entropia.vapor.server.Server
 import de.entropia.vapor.daemon.config.Settings
 import de.entropia.vapor.daemon.mixer.Manager
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 class Application(settings: Settings) extends Logging {
@@ -15,7 +15,7 @@ class Application(settings: Settings) extends Logging {
   val server = new Server(settings, mixer, manager)
 
   def start() {
-    info("starting up")
+    logger.info("starting up")
     server.start()
     mixer.run()
   }

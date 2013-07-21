@@ -1,8 +1,8 @@
 package de.entropia.vapor.hardware
 
 import scala.collection.mutable
-import grizzled.slf4j.Logging
 import de.entropia.vapor.daemon.config.Settings
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 /**

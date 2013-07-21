@@ -1,8 +1,8 @@
 package de.entropia.vapor.hardware
 
 import java.io.OutputStream
-import grizzled.slf4j.Logging
 import de.entropia.vapor.util.UnsignedByte.Byte2UnsignedByte
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 /**
@@ -17,7 +17,7 @@ class Framer(val rawDevice: OutputStream) extends Logging {
 
   def write(framePayloadBytes: Seq[Byte]) {
     // note: make sure there are no unintended byte->int conversions
-    debug("writing: %s".format(framePayloadBytes))
+    logger.debug("writing: %s".format(framePayloadBytes))
     rawDevice.write(START_MARK.toUnsignedInt)
     for (b <- framePayloadBytes) {
       b match {

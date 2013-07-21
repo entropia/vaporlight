@@ -8,10 +8,10 @@ import org.jboss.netty.channel._
 import org.jboss.netty.channel.group.{DefaultChannelGroup, ChannelGroup}
 import java.util.concurrent.Executors
 import org.jboss.netty.handler.codec.frame.FrameDecoder
-import grizzled.slf4j.Logging
 import de.entropia.vapor.mixer.Mixer
 import de.entropia.vapor.daemon.config.Settings
 import de.entropia.vapor.daemon.mixer.Manager
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 sealed abstract class ServerMsg()
@@ -78,7 +78,7 @@ class VaporlightFrameDecoder() extends FrameDecoder with Logging {
  * Handles a single connection.
  */
 class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLocal[Client], val settings: Settings, val mixer: Mixer, val manager: Manager) extends SimpleChannelUpstreamHandler with Logging {
-  info("channel created")
+  logger.info("channel created")
 
   override def handleUpstream(ctx: ChannelHandlerContext, e: org.jboss.netty.channel.ChannelEvent) {
     e match {
@@ -101,7 +101,7 @@ class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLoc
       client.disconnect()
     } catch {
       case e: Exception =>
-        debug(e)
+        logger.debug("channel error", e)
     }
   }
 
@@ -111,13 +111,13 @@ class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLoc
       local.get(ctx.getChannel).dispatch(m)
     } catch {
       case e: Exception =>
-        debug("client threw exception; client killed", e)
+        logger.debug("client threw exception; client killed", e)
         ctx.getChannel.close()
     }
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    error("unexpected exception from downstream", e.getCause)
+    logger.error("unexpected exception from downstream", e.getCause)
     local.get(ctx.getChannel).disconnect()
     ctx.getChannel.close()
     local.remove(ctx.getChannel)
