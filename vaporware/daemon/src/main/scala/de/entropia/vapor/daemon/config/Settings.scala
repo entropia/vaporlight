@@ -65,7 +65,7 @@ class RichConfig(val config: Config) {
   }
 
   def getChannelCounts(key: String): Map[Byte, Int] =
-    getMap(key)(_.toByte, (k, v) => v.asInstanceOf[Int])
+    getMap(key)(_.toInt.toByte, (k, v) => v.asInstanceOf[Int]) // .toInt.toByte necessary for module ids > 127
 
   private def getMap[outK, outV](configKey: String)(keyFunc: (String) => outK, valueFunc: (outK, Any) => outV): Map[outK, outV] = {
     val map = config.getObject(configKey).unwrapped().asInstanceOf[java.util.Map[String, Any]]
