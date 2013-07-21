@@ -23,7 +23,7 @@ object Settings {
 
 abstract sealed class DeviceSettings()
 
-final case class SerialDeviceSettings(val interface: String) extends DeviceSettings
+final case class SerialDeviceSettings(val interface: String, val baudrate: Int) extends DeviceSettings
 
 final case class NetworkDeviceSettings(val host: String, val port: Int) extends DeviceSettings
 
@@ -35,7 +35,7 @@ class RichConfig(val config: Config) {
     val subconf = config.getConfig(baseKey)
     val deviceType = subconf.getString("type")
     deviceType match {
-      case "serial" => SerialDeviceSettings(subconf.getString("interface"))
+      case "serial" => SerialDeviceSettings(subconf.getString("interface"), subconf.getInt("baudrate"))
       case "network" => NetworkDeviceSettings(subconf.getString("host"), subconf.getInt("port"))
       case "file" => FileDeviceSettings(subconf.getString("path"))
       case _ => throw new IllegalArgumentException("invalid value: " + subconf.origin())

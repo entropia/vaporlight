@@ -11,11 +11,11 @@ import de.entropia.vapor.daemon.config.{FileDeviceSettings, NetworkDeviceSetting
  */
 object Physical {
 
-  def openSerialPort(devicePath: String): OutputStream = {
+  def openSerialPort(devicePath: String, baudrate: Int): OutputStream = {
     val portId = CommPortIdentifier.getPortIdentifier(devicePath)
     if (portId.getPortType != CommPortIdentifier.PORT_SERIAL) ???
     val port = portId.open("vaporlight", 3000).asInstanceOf[SerialPort]
-    port.setSerialPortParams(500000, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
+    port.setSerialPortParams(baudrate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
     port.getOutputStream
   }
 
@@ -29,7 +29,7 @@ object Physical {
   }
 
   def open(settings: Settings) = settings.device match {
-    case SerialDeviceSettings(interface) => openSerialPort(interface)
+    case SerialDeviceSettings(interface, baudrate) => openSerialPort(interface, baudrate)
     case NetworkDeviceSettings(host, port) => openSocket(host, port)
     case FileDeviceSettings(path) => openFile(path)
   }
