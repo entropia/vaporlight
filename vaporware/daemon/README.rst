@@ -43,6 +43,7 @@ All commands consist of a 1-byte opcode and a payload.
 
 First, you have to authenticate yourself using
 the auth command and a 16-byte access token.
+Shorter tokens are to be padded with 0x00 bytes.
 Tokens have a priority defined in the server
 config which determines rendering order::
 

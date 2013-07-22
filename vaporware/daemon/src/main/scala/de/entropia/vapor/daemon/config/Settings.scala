@@ -43,7 +43,7 @@ class RichConfig(val config: Config) {
   }
 
   def getTokens(key: String): Map[TokenId, Token] = {
-    getMap(key)(_.getBytes.toList, (key, properties) => {
+    getMap(key)(_.getBytes.toList.padTo(16, 0x00.toByte), (key, properties) => {
       val propertyMap = properties.asInstanceOf[java.util.Map[String, Object]].toMap
       new Token(key,
         propertyMap.get("priority").asInstanceOf[Option[Int]].get,

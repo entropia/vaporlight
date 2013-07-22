@@ -177,6 +177,7 @@ class AuthenticateCommand(object):
     opcode = "\x02"
 
     def __init__(self, token):
+        token = token.ljust(16, "\x00") # pad to 16 bytes
         self._token = token;
 
     def to_str(self):

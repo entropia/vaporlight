@@ -20,7 +20,8 @@ class Client(val settings: Settings, val mixer: Mixer, val manager: Manager) ext
 
   def auth(bytes: Seq[Byte]) {
     overlay.map(_.free())
-    token = settings.tokens.get(bytes)
+    val paddedBytes = bytes.padTo(16, 0x00.toByte)
+    token = settings.tokens.get(paddedBytes)
     token match {
       case None =>
         overlay = None
