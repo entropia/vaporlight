@@ -38,8 +38,13 @@ static volatile uint32_t * const TIMER_CHANNELS[MODULE_LENGTH] = {
 };
 
 // Baud rate register for the USARTs.
+#if BUS_BAUDRATE == 115200
+// Divider 13.0 * 16 = 208.3: 115200 baud at 24MHz
+static const int USART_BAUD_VALUE = (13 << 4) | 0;
+#else
 // Divider 3.0 * 16 = 48.0: 500000 baud at 24MHz
 static const int USART_BAUD_VALUE = (3 << 4) | 0;
+#endif
 // Divider 13.0 * 16 = 208.3: 115200 baud at 24MHz
 static const int CONSOLE_BAUD_VALUE = (13 << 4) | 0;
 

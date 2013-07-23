@@ -25,6 +25,9 @@ DBG = -DOMIT_HEAT_CHECK -DTRACE_ERRORS -DUSART1_CHECKS
 # How many bits to use for the PWM.
 PWM_BITS = 13
 
+# 500000: normal, 115200: raspi
+BUS_BAUDRATE = 500000
+
 # End of configuration section.
 
 OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o gamma.o heat.o led.o main.o startup.o usart1.o usart2.o
@@ -33,7 +36,7 @@ CC             = arm-elf-gcc
 
 # Override is only needed by avr-lib build system.
 
-override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) -DPWM_BITS=$(PWM_BITS)
+override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) -DPWM_BITS=$(PWM_BITS) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
 override LDFLAGS       = -Wl,-Map,$(PRG).map -nostartfiles -Tlinker.ld
 
 OBJCOPY        = arm-elf-objcopy
