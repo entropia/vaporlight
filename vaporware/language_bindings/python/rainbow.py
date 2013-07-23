@@ -1,11 +1,8 @@
-import colorsys
-import math
-import sys
 import time
+import llvp
 
-import login
 
-
+BRIGHTNESS = 0.2
 RAINBOW = [
     (128, 0, 0),
     (128, 128, 0),
@@ -14,22 +11,20 @@ RAINBOW = [
     (128, 0, 255)
 ]
 
-def main():
-    light = login.connect()
+
+def main(light, num_lights):
     j = 1e9
     while True:
-        j -= 0.01
-        time.sleep(0.005)
-        for module in xrange(5):
-            for color_num in xrange(5):
+        j += 0.025
+        time.sleep(0.01)
+        for module in xrange(1):
+            for color_num in xrange(4):
                 color_a = RAINBOW[(int(j) + color_num) % len(RAINBOW)]
                 color_b = RAINBOW[(int(j) + color_num + 1) % len(RAINBOW)]
                 color = interpolate(color_a, color_b, j % 1.0)
+                color = [int(x * BRIGHTNESS) for x in color]
                 light.set_rgb(module * 5 + color_num, color)
         light.strobe()
-    while True:
-        time.sleep(10)
-    light.close()
 
 def interpolate(c2, c1, i): # i = 0...1
     return (
@@ -37,6 +32,7 @@ def interpolate(c2, c1, i): # i = 0...1
         int(c1[1] * i + c2[1] * (1-i)),
         int(c1[2] * i + c2[2] * (1-i)))
 
+
 if __name__ == "__main__":
-    main()
+    llvp.main(main)
 

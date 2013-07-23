@@ -1,34 +1,21 @@
-import colorsys
-import math
-import sys
 import time
+import llvp
 
-import login
 
-
-RAINBOW = [
-    (128, 0, 0),
-    (128, 128, 0),
-    (0, 255, 0),
-    (0, 0, 255),
-    (128, 0, 255)
-]
-
-def main():
-    light = login.connect()
-    sleep = 0.01
+def main(light, num_leds):
     while True:
-        for intensity in xrange(255):
-            for led in xrange(login.NUM_LEDS):
-                light.set_rgb(led, (intensity, intensity, intensity))
-            light.strobe()
-            time.sleep(sleep)
-        for intensity in xrange(255, -1, -1):
-            for led in xrange(login.NUM_LEDS):
-                light.set_rgb(led, (intensity, intensity, intensity))
-            light.strobe()
-            time.sleep(sleep)
+        for intensity in xrange(255): # fade up
+            apply(light, num_leds, intensity)
+        for intensity in xrange(255, -1, -1): # fade down
+            apply(light, num_leds, intensity)
+
+def apply(light, num_leds, intensity):
+    for led in xrange(num_leds):
+        light.set_rgb(led, (intensity, intensity, intensity))
+    light.strobe()
+    time.sleep(0.02)
+
 
 if __name__ == "__main__":
-    main()
+    llvp.main(main)
 

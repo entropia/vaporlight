@@ -1,21 +1,13 @@
-import colorsys
-import math
-import sys
-import time
-
-import login
+import llvp
 
 
-def main():
-    light = login.connect()
-    for i in xrange(login.NUM_LEDS):
+def main(light, num_leds):
+    for i in xrange(num_leds):
         light.set_rgb(i, (255, 255, 255))
     light.strobe()
-    while True:
-        time.sleep(10)
-    light.close()
+    light.done()
 
 
 if __name__ == "__main__":
-    main()
+    llvp.main(main)
 

@@ -1,13 +1,18 @@
+"""
+Utility script that can be used to test the
+message received on socket -> message sent to bus
+latency of the vaporlight daemon.
+"""
+
 import colorsys
 import math
 import sys
 import time
 
-import login
+import llvp
 
 
-def main():
-    light = login.connect()
+def main(light, num_leds):
 
     # warmup
     j = 1e9
@@ -40,10 +45,8 @@ def main():
     # test
     light.set_rgb(1, (255,0,255))
     light.strobe()
+    light.done()
 
-    while True:
-        time.sleep(10)
-    light.close()
 
 def interpolate(c2, c1, i): # i = 0...1
     return (
@@ -53,5 +56,5 @@ def interpolate(c2, c1, i): # i = 0...1
 
 
 if __name__ == "__main__":
-    main()
+    llvp.main(main)
 

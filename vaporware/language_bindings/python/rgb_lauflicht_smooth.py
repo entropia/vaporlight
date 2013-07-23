@@ -3,7 +3,7 @@ import math
 import sys
 import time
 
-import login
+import llvp
 
 
 RAINBOW = [
@@ -15,8 +15,7 @@ RAINBOW = [
     (255, 0, 255),
 ]
 
-def main():
-    light = login.connect()
+def main(light, num_leds):
     j = 1e9
     while True:
         j -= 0.01
@@ -39,5 +38,5 @@ def interpolate(c1, c2, i): # i = 0...1
         int(c1[2] * i + c2[2] * (1-i)))
 
 if __name__ == "__main__":
-    main()
+    llvp.main(main)
 

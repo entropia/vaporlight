@@ -1,9 +1,11 @@
 """Implementation of the Low-Level Vaporlight Protocol."""
 
+import argparse
+import time
 import socket
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 class FilelikeController(object):
@@ -30,6 +32,10 @@ class FilelikeController(object):
 
     def close(self):
         self._filelike.close()
+
+    def done(self):
+        while True: # to keep socket open
+            time.sleep(1)
 
 
 class SocketController(FilelikeController):
@@ -190,4 +196,15 @@ class AuthenticateCommand(object):
 
 class ProtocolError(Exception):
     pass
+
+
+def main(func):
+    parser = argparse.ArgumentParser(description='Some vaporlight animation.')
+    parser.add_argument('--host', type=str, default="localhost")
+    parser.add_argument('--port', type=int, default=7534)
+    parser.add_argument('--token', type=str, default="sixteen letters.")
+    parser.add_argument('--leds', type=int, default=5)
+    args = parser.parse_args()
+    dev = SocketController(args.token, args.host, args.port)
+    return func(dev, args.leds)
 
