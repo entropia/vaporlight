@@ -15,6 +15,23 @@ Authors: see AUTHORS
 [1] https://github.com/entropia/vaporlight
 
 
+Configuration
+-------------
+
+You can parametrize the daemon using config files.
+Default config files are included in the JAR.
+You can specify alternate config files via command line parameters:
+
+* Main config file: `-Dconfig.file=...`.
+  They use the HOCON (like JSON) format, described here: [2].
+
+* Logging config file: `-Dlogback.configurationFile=...`
+  The format is explained in [3].
+
+[2] https://github.com/typesafehub/config#json-superset
+[3] http://logback.qos.ch/manual/configuration.html
+
+
 Debugging
 ---------
 
