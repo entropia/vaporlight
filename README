@@ -1,0 +1,19 @@
+Vaporlight
+==========
+
+The Vaporlight is Entropias LED lighting system.
+
+More documentation (including pictures) is available
+at https://entropia.de/Vaporlight.
+
+
+Where to find what
+------------------
+
+/hardware                      Schematics and PCB layouts (Eagle)
+/vaporware/led-boards          Firmware for the LED modules (C)
+/config                        OpenOCD config files
+/vaporware/emulator            Hardware emulator (Python)
+/vaporware/daemon              TCP <-> Bus router (Scala)
+/vaporware/language_bindings   Libraries for talking to the router (Python, C++)
+
