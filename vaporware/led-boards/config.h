@@ -42,8 +42,12 @@ static volatile uint32_t * const TIMER_CHANNELS[MODULE_LENGTH] = {
 // Divider 13.0 * 16 = 208.3: 115200 baud at 24MHz
 static const int USART_BAUD_VALUE = (13 << 4) | 0;
 #else
+ #if BUS_BAUDRATE == 500000
 // Divider 3.0 * 16 = 48.0: 500000 baud at 24MHz
 static const int USART_BAUD_VALUE = (3 << 4) | 0;
+ #else
+  #error "Only baud rates 115200 and 500000 are supported"
+ #endif
 #endif
 // Divider 13.0 * 16 = 208.3: 115200 baud at 24MHz
 static const int CONSOLE_BAUD_VALUE = (13 << 4) | 0;
@@ -72,7 +76,7 @@ static const int USART_FAIL_TRESHOLD = 20;
 #define CONSOLE_READ_BASE 16
 
 
-// Temperature sendor ADC ports
+// Temperature sensor ADC ports
 static const uint8_t HEAT_ADC_PORTS[HEAT_SENSOR_LEN] = {
 	4,
 	5,
