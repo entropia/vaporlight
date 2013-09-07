@@ -159,14 +159,14 @@ void usart2_set_filter(usart_filter_t filter) {
  */
 static void isr_read_error() {
 	dled_toggle();
-	
+
 	// Abort current reception
 	isr_write_idx = 0;
 	isr_state = IDLE;
 
 	if (fail_event(&isr_usart_fails, 1)) {
 		// Too many failures, raise an error.
-		error(ER_USART_RX, STR_WITH_LEN("Too many USART errors"), EA_RESET);
+		error(ER_USART_RX, STR_WITH_LEN("Too many USART errors"), EA_PANIC);
 	}
 }
 
@@ -225,7 +225,7 @@ static void isr_read_command(unsigned char in_byte) {
 		isr_escape = 1;
 		return;
 	}
-	
+
 	// Whatever the state is, on receiving the start-of-command
 	// mark we must abort the current command and go into
 	// the GOT_START state.
@@ -239,8 +239,8 @@ static void isr_read_command(unsigned char in_byte) {
 			// Nothing to do. The code above takes care of
 			// receiving the start byte.
 			break;
-		
-		case GOT_START:		
+
+		case GOT_START:
 			// This byte (the one after start) is the command.
 			// Check if the command interpreter is interested.
 			if (usart_filter(in_byte)) {
@@ -272,7 +272,7 @@ static void isr_read_command(unsigned char in_byte) {
 				isr_state = IDLE;
 			}
 			break;
-		
+
 		case READING:
 			// Next byte.
 			isr_buffers[isr_write_buffer][isr_write_idx++] = in_byte & 0xff;
@@ -298,7 +298,7 @@ void isr_dispatch(unsigned short sr, unsigned short dr) {
 		fail_event(&isr_usart_fails, 0);
 		isr_read_command(dr & 0xff);
 	} else {
-		error(ER_USART_RX, STR_WITH_LEN("Strange interrupt on USART."), EA_RESET);
+		error(ER_USART_RX, STR_WITH_LEN("Strange interrupt on USART."), EA_PANIC);
 	}
 }
 

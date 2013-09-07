@@ -73,7 +73,7 @@ static const int USART_FAIL_TRESHOLD = 20;
 
 
 // Number base used for reading user input in the config console.
-#define CONSOLE_READ_BASE 16
+#define CONSOLE_READ_BASE 10
 
 
 // Temperature sensor ADC ports
@@ -142,10 +142,42 @@ static const uint16_t CONFIG_ENTRY_OLD = 0x0000;
  */
 
 /*
+ * Canonical indices for the colors.
+ */
+typedef enum {
+	RED   = 0,
+	GREEN = 1,
+	BLUE  = 2
+} color_t;
+
+/*
+ * Information for color correction of a single LED, and conversion
+ * from LED colors to PWM channels.
+ */
+typedef struct {
+	// 3*3 matrix for color correction.
+	// This converts an input
+	//      ( x )
+	// xy = ( y )
+	//      ( 1 )
+	// to the ratio of red, green and blue PWM channels necessary
+	// to repreduce the color (if possible).
+	// ( r )
+	// ( g ) = color_matrix * xy;
+	// ( b )
+	float color_matrix[9];
+
+	// The luminosity of each channel at maximum PWM setting.
+	float peak_Y[3];
+
+	// Index of the PWM channels for red, green and blue.
+	int channels[3];
+} led_info_t;
+
+/*
  * Struct for a complete set of configuration.
  */
 typedef struct {
-
 	// This module's address.
 	// It is stored as a 16-bit integer so that the whole struct has a size
 	// divisible by sizeof(uint16_t).
@@ -153,6 +185,9 @@ typedef struct {
 
 	// Temperature limits for the heat sensors.
 	uint16_t heat_limit[HEAT_SENSOR_LEN];
+
+	// Color correction info
+	led_info_t led_infos[MODULE_LENGTH/3];
 
 	// LED permutation. Maps from logical LED to physical LED.
 	uint8_t physical_led[MODULE_LENGTH];

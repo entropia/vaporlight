@@ -5,8 +5,6 @@
 
 #include "console.h"
 
-#include <ctype.h>
-
 #include "config.h"
 #include "console_prompt.h"
 #include "console_wp.h"
@@ -70,7 +68,7 @@ void console_int(int value, int base, int min_width, char padding) {
 		} else {
 			buf[--pos] = 'a' + (digit - 10);
 		}
-		
+
 		value /= base;
 	} while (value > 0);
 
@@ -173,7 +171,7 @@ vl_mode_t console_ask_mode() {
 	}
 
 	// Look to see if there is an answer.
-	
+
 	// Since the user may actually have pressed several keys and
 	// these should not appear in the console, we must read the
 	// whole input buffer.
@@ -252,6 +250,30 @@ void console_run() {
  * shared between the operating modes.
  */
 
+static int isspace(int x) {
+	char c = (char) x;
+	return c == ' ' || c == '\n' || c == '\t' || c == '\f' || c == '\v' || c == '\r';
+}
+
+static int isalpha(int x) {
+	char c = (char) x;
+	return ('A' <= c && c <= 'Z') ||
+		('a' <= c && c <= 'z');
+}
+
+static int isdigit(int x) {
+	char c = (char) x;
+	return '0' <= c && c <= '9';
+}
+
+static int tolower(int x) {
+	if (isalpha(x)) {
+		return x | 0x20;
+	} else {
+		return x;
+	}
+}
+
 /*
  * Returns the value of the given char when interpreted as a digit
  * where '0' = 0, ..., '9' = 9, 'a' = 'A' = 10, ..., 'z' = 'Z' = 35.
@@ -293,10 +315,11 @@ error_t parse_int(char *line, int *pos, unsigned int *target, int base) {
 	if (isspace((int)(line[p])) || line[p] == '\0') {
 		*target = result;
 		*pos = p;
-		
+
 		return E_SUCCESS;
 	} else {
+		console_write("ARG_FORMAT ");
+		console_int_02x(line[p]);
 		return E_ARG_FORMAT;
 	}
 }
-

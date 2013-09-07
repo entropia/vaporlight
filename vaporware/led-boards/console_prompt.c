@@ -1,8 +1,8 @@
 #include "console_prompt.h"
 
-#include <ctype.h>
 #include <stdio.h>
 
+#include "color.h"
 #include "config.h"
 #include "console.h"
 #include "error.h"
@@ -156,6 +156,33 @@ static error_t run_set_brightness(unsigned int args[]) {
 	error_t error = pwm_set_brightness(config.physical_led[index], (uint16_t) brightness);
 	if (error) return error;
 	return pwm_send_frame();
+}
+
+/*
+ * Runs the "set LED color" command.
+ *
+ * Expected format for args: { led-index, x, y, Y }
+ *
+ * Always succeeds.
+ */
+static error_t run_set_color(unsigned int args[]) {
+	int index = args[0];
+	int x = args[1];
+	int y = args[2];
+	int Y = args[3];
+
+	led_info_t *info = &config.led_infos[index];
+
+	uint16_t r, g, b;
+
+	color_correct(info, x, y, Y, &r, &g, &b);
+
+	console_write("Color correction: ");
+	console_int_d(r); console_write(" ");
+	console_int_d(g); console_write(" ");
+	console_int_d(b); console_write(CRLF);
+
+	return E_SUCCESS;
 }
 
 /*
@@ -352,7 +379,14 @@ static console_command_t commands[] = {
 		.arg_length = 2,
 		.handler = run_set_brightness,
 		.usage =
-		"b <led-index> <brightness>: Set brightness of a single LED",
+		"b <led-index> <brightness>: Set brightness of a single PWM channel",
+		.does_exit = 0,
+	},
+	{
+		.key = 'c',
+		.arg_length = 4,
+		.handler = run_set_color,
+		.usage = "c: <led-index> <x> <y> <Y>: Set color of a logical LED (calibrated)",
 		.does_exit = 0,
 	},
 	{
@@ -427,7 +461,7 @@ static console_command_t commands[] = {
 	},
 };
 #define COMMAND_COUNT (sizeof(commands) / sizeof(console_command_t))
-#define MAX_ARG_LEN 3
+#define MAX_ARG_LEN 5
 
 /*
  * Runs the "show help" command.
@@ -559,6 +593,18 @@ static console_command_t *get_command(char key) {
 		(position)++;		    \
 	}
 
+static int isalnum(int x) {
+	char c = (char) x;
+	return ('a' <= c && c <= 'z') ||
+		('0' <= c && c <= '9') ||
+		('A' <= c && c <= 'Z');
+}
+
+static int isspace(int x) {
+	char c = (char) x;
+	return c == ' ' || c == '\n' || c == '\t' || c == '\f' || c == '\v' || c == '\r';
+}
+
 /*
  * Parses a command line of the format "<command-key> <integer-argument>*".
  *
@@ -575,10 +621,10 @@ static error_t parse_args(char *line, unsigned int *args, int arg_length) {
 	SKIP_WHILE(isalnum, line, pos);
 	SKIP_WHILE(isspace, line, pos);
 
-
 	for (int arg = 0; arg < arg_length; arg++) {
 		if (line[pos] == '\0') {
 			// The line has ended before all args could be parsed.
+			console_int_d(arg);
 			return E_MISSING_ARGS;
 		}
 

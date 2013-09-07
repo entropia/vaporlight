@@ -3,7 +3,7 @@ PRG            = led-board
 
 # Optimization settings
 # OPTIMIZE       = -O2 -g
-OPTIMIZE       = -flto -O2
+OPTIMIZE       = -Os -flto
 
 # Unused for now
 LIBS           =
@@ -27,17 +27,17 @@ BUS_BAUDRATE = 500000
 
 # End of configuration section.
 
-OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
+OBJ            = color.o command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
 
-CC             = arm-elf-gcc
+CC             = arm-none-eabi-gcc
+OBJCOPY        = arm-none-eabi-objcopy
+OBJDUMP        = arm-none-eabi-objdump
 
 # Override is only needed by avr-lib build system.
 
-override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
+override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mfloat-abi=soft -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
 override LDFLAGS       = -Wl,-Map,$(PRG).map -nostartfiles -Tlinker.ld
 
-OBJCOPY        = arm-elf-objcopy
-OBJDUMP        = arm-elf-objdump
 
 all: git_version.h $(PRG).elf lst text eeprom
 
