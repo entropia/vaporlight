@@ -22,30 +22,24 @@ LIBS           =
 #       USART1_CHECKS
 DBG = -DOMIT_HEAT_CHECK -DTRACE_ERRORS -DUSART1_CHECKS
 
-# How many bits to use for the PWM.
-PWM_BITS = 13
-
 # 500000: normal, 115200: raspi
 BUS_BAUDRATE = 500000
 
 # End of configuration section.
 
-OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o gamma.o heat.o main.o pwm.o startup.o usart1.o usart2.o
+OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
 
 CC             = arm-elf-gcc
 
 # Override is only needed by avr-lib build system.
 
-override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) -DPWM_BITS=$(PWM_BITS) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
+override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
 override LDFLAGS       = -Wl,-Map,$(PRG).map -nostartfiles -Tlinker.ld
 
 OBJCOPY        = arm-elf-objcopy
 OBJDUMP        = arm-elf-objdump
 
-all: gamma_table.inc git_version.h $(PRG).elf lst text eeprom
-
-gamma_table.inc: make_gamma_table.py
-	./make_gamma_table.py $(PWM_BITS) 1.8 1.8 1.8 1.8 > gamma_table.inc
+all: git_version.h $(PRG).elf lst text eeprom
 
 git_version.h:
 	echo "#define GIT_VERSION_ID \""$(shell git rev-parse HEAD)"\"" > git_version.h
@@ -56,7 +50,6 @@ $(PRG).elf: $(OBJ)
 clean:
 	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak
 	rm -rf *.lst *.map *.bin *.hex *.srec $(EXTRA_CLEAN_FILES)
-	rm -f gamma_table.inc
 	rm -f git_version.h
 
 lst:  $(PRG).lst
@@ -73,13 +66,13 @@ bin:  $(PRG).bin
 srec: $(PRG).srec
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -j .config -j .gamma -O ihex $< $@
+	$(OBJCOPY) -j .text -j .data -j .config -O ihex $< $@
 
 %.srec: %.elf
-	$(OBJCOPY) -j .text -j .data -j .config -j .gamma -O srec $< $@
+	$(OBJCOPY) -j .text -j .data -j .config -O srec $< $@
 
 %.bin: %.elf
-	$(OBJCOPY) -j .text -j .data -j .config -j .gamma -O binary $< $@
+	$(OBJCOPY) -j .text -j .data -j .config -O binary $< $@
 
 # Rules for building the .eeprom rom images
 

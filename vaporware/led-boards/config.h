@@ -86,9 +86,8 @@ static const uint8_t HEAT_ADC_PORTS[HEAT_SENSOR_LEN] = {
 	13,
 };
 
-// How many bits to use for the PWM.  This is now imported from the
-// Makefile in order to synchronize with make_gamma_table.py.
-// #define PWM_BITS 13
+// How many bits to use for the PWM.
+#define PWM_BITS 16
 
 // The value to which the PWM counters will be reset.
 #if PWM_BITS == 16

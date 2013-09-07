@@ -9,7 +9,6 @@
 #include "debug.h"
 #include "error.h"
 #include "fail.h"
-#include "gamma.h"
 #include "heat.h"
 #include "pwm.h"
 #include "usart1.h"
@@ -39,12 +38,11 @@ int main() {
 	vl_mode_t mode;
 
 	usart1_init();
-	
+
 #ifdef TRACE_STARTUP
 	dled_off();
 #endif
 
-	gamma_init();
 	pwm_init();
 	pwm_set_state(PWM_STOP);
 
@@ -80,7 +78,7 @@ int main() {
 	}
 
 	// We are now, regardless of the value of mode, in normal mode.
-	
+
 	command_init();
 	usart2_init();
 
@@ -92,7 +90,7 @@ int main() {
 			debug_string("C:");
 #endif
 			ret = run_command(command);
-			
+
 			if (ret != E_SUCCESS) {
 				error(ER_USART_RX, STR_WITH_LEN("Bogus USART command."), EA_RESUME);
 			}

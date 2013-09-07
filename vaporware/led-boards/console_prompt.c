@@ -6,7 +6,6 @@
 #include "config.h"
 #include "console.h"
 #include "error.h"
-#include "gamma.h"
 #include "git_version.h"
 #include "pwm.h"
 #include "term.h"
@@ -77,20 +76,11 @@ static const char *CORRECTION_OUT_OF_RANGE =
 static const char *CONFIG_IS_INVALID =
 	"The current state of configuration is invalid." CRLF;
 
-static const char *GAMMA_VALUE_OUT_OF_RANGE =
-	"The gamma value is out of range (0 to 0xffff)." CRLF;
-
 static const char *RELOADING_CONFIG =
 	"Reloading configuration..." CRLF;
 
 static const char *SAVING_CONFIG =
 	"Saving configuration..." CRLF;
-
-static const char *RELOADING_GAMMA =
-	"Reloading gamma table..." CRLF;
-
-static const char *SAVING_GAMMA =
-	"Saving gamma table..." CRLF;
 
 static const char *BEGINNING_ECHO =
 	"Echoing... Finish with q on a single line" CRLF;
@@ -244,58 +234,6 @@ static error_t run_paste_file(unsigned int args[]) {
 }
 
 /*
- * Runs the "set gamma table" command.
- *
- * Expected format for args: { color-index, raw-brightness, gamma-value }
- *
- * Returns E_ARG_FORMAT if either index is out of range.
- */
-static error_t run_set_gamma(unsigned int args[]) {
-	int color = args[0];
-	int raw = args[1];
-	int gamma = args[2];
-
-	if (color != RED && color != GREEN && color != BLUE && color != WHITE) {
-		console_write(COLOR_CODE_INVALID);
-		return E_ARG_FORMAT;
-	}
-	if (check_byte(raw, BRIGHTNESS_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-	if (check_short(gamma, GAMMA_VALUE_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-
-	gamma_edit(color, raw, gamma);
-	return E_SUCCESS;
-}
-
-/*
- * Runs the "dump gamma table" command.
- *
- * Expected format for args: { }
- *
- * Always succeeds.
- */
-static error_t run_dump_gamma(unsigned int args[]) {
-
-	for (unsigned b = 0; b <= 0xff; b++) {
-		console_int_02x(b);
-		console_write(": ");
-
-		// TODO has cardinality of color_t harcoded!
-		for (uint8_t c = 0; c < 4; c++) {
-			console_int_04x(gamma(c, (uint8_t) b));
-			console_write(" ");
-		}
-
-		console_write(CRLF);
-	}
-
-	return E_SUCCESS;
-}
-
-/*
  * Runs the "set heat limit" command.
  *
  * Expected format for args: { sensor-index, heat-limit }
@@ -339,14 +277,6 @@ static error_t run_reload_config(unsigned int args[]) {
 	default:
 		console_write(UNKNOWN_FLASH_ERROR);
 		break;
-	}
-
-	console_write(RELOADING_GAMMA);
-
-	error = gamma_reload();
-
-	if (error != E_SUCCESS) {
-		console_write(UNKNOWN_FLASH_ERROR);
 	}
 
 	return error;
@@ -412,21 +342,6 @@ static error_t run_save_config(unsigned int args[]) {
 	console_write(SAVING_CONFIG);
 
 	error_t error = save_config();
-
-	switch(error) {
-	case E_SUCCESS:
-		break;
-	case E_FLASH_WRITE:
-		console_write(FLASH_WRITE_FAILED);
-		break;
-	default:
-		console_write(UNKNOWN_FLASH_ERROR);
-		break;
-	}
-
-	console_write(SAVING_GAMMA);
-
-	error = gamma_save();
 
 	switch(error) {
 	case E_SUCCESS:
@@ -522,20 +437,6 @@ static console_command_t commands[] = {
 		.does_exit = 0,
 	},
 	{
-		.key = 'g',
-		.arg_length = 3,
-		.handler = run_set_gamma,
-		.usage = "g <color-index> <raw-brightness> <gamma-value>: Set gamma table",
-		.does_exit = 0,
-	},
-	{
-		.key = 'G',
-		.arg_length = 0,
-		.handler = run_dump_gamma,
-		.usage = "G: Dump gamma table",
-		.does_exit = 0,
-	},
-	{
 		.key = 'h',
 		.arg_length = 2,
 		.handler = run_set_heat_limit,
@@ -546,7 +447,7 @@ static console_command_t commands[] = {
 		.key = 'l',
 		.arg_length = 0,
 		.handler = run_reload_config,
-		.usage = "l: Reload configuration and gamma table from flash",
+		.usage = "l: Reload configuration from flash",
 		.does_exit = 0,
 	},
 	{
@@ -574,7 +475,7 @@ static console_command_t commands[] = {
 		.key = 's',
 		.arg_length = 0,
 		.handler = run_save_config,
-		.usage = "s: Save configuration and gamma table to flash",
+		.usage = "s: Save configuration to flash",
 		.does_exit = 0,
 	},
 	{

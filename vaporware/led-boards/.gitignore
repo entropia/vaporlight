@@ -6,6 +6,5 @@
 *.hex
 *.srec
 *.bin
-gamma_table.inc
 git_version.h
 TAGS

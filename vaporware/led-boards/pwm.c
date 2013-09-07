@@ -1,7 +1,6 @@
 #include "pwm.h"
 
 #include "config.h"
-#include "gamma.h"
 
 #include "stm_include/stm32/timer.h"
 
@@ -167,9 +166,7 @@ error_t pwm_set_brightness(uint8_t led, uint8_t brightness) {
 		error(ER_BUG, STR_WITH_LEN("LED index out of range"), EA_RESUME);
 		return E_INDEXRANGE;
 	} else {
-		pwm_values[led] = (gamma(config.led_color[led], brightness) *
-				   config.white_correction[led])
-					>> 16;
+		pwm_values[led] = brightness << 8;
 		return E_SUCCESS;
 	}
 }
