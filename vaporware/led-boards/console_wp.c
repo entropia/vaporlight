@@ -164,12 +164,12 @@ static void run_direct_edit() {
 
 static void leds_dark() {
 	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (led_set_brightness(i, 0) != E_SUCCESS) {
+		if (pwm_set_brightness(i, 0) != E_SUCCESS) {
 			error(ER_BUG, STR_WITH_LEN("Error while updating LEDs"), EA_PANIC);
 		}
 	}
 
-	if (led_send_frame()) {
+	if (pwm_send_frame()) {
 		error(ER_BUG, STR_WITH_LEN("Error while sending frame"), EA_PANIC);
 	}
 }
@@ -235,12 +235,12 @@ int run_command_wp() {
 
 	// Update all LEDs.
 	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (led_set_brightness(config.physical_led[i], brightnesses[i]) != E_SUCCESS) {
+		if (pwm_set_brightness(config.physical_led[i], brightnesses[i]) != E_SUCCESS) {
 			error(ER_BUG, STR_WITH_LEN("Error while updating LEDs"), EA_PANIC);
 		}
 	}
 
-	if (led_send_frame()) {
+	if (pwm_send_frame()) {
 		error(ER_BUG, STR_WITH_LEN("Error while sending frame"), EA_PANIC);
 	}
 	

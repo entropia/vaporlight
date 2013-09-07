@@ -10,7 +10,7 @@
 
 #include "config.h"
 #include "error.h"
-#include "led.h"
+#include "pwm.h"
 #include "sync.h"
 #include "term.h"
 

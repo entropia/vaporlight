@@ -30,7 +30,7 @@ BUS_BAUDRATE = 500000
 
 # End of configuration section.
 
-OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o gamma.o heat.o led.o main.o startup.o usart1.o usart2.o
+OBJ            = command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o gamma.o heat.o main.o pwm.o startup.o usart1.o usart2.o
 
 CC             = arm-elf-gcc
 
@@ -54,7 +54,7 @@ $(PRG).elf: $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean:
-	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak 
+	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak
 	rm -rf *.lst *.map *.bin *.hex *.srec $(EXTRA_CLEAN_FILES)
 	rm -f gamma_table.inc
 	rm -f git_version.h

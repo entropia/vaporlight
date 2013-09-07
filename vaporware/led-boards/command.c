@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "debug.h"
-#include "led.h"
+#include "pwm.h"
 #include "usart2.h"
 
 /*
@@ -74,7 +74,7 @@ static error_t run_set_leds(uint8_t *led_values, uint8_t length) {
 	}
 
 	for (uint8_t i = 0; i < length; i++) {
-		error = led_set_brightness(config.physical_led[i], led_values[i]);
+		error = pwm_set_brightness(config.physical_led[i], led_values[i]);
 
 		if (error) return error;
 	}
@@ -96,7 +96,7 @@ error_t run_command(uint8_t *command) {
 		// The first byte is the addresss. Drop it.
 		return run_set_leds(command + 1, MODULE_LENGTH);
 	} else if (command[0] == CMD_STROBE) {
-		return led_send_frame();
+		return pwm_send_frame();
 	}
 
 	// else

@@ -11,7 +11,7 @@
 #include "fail.h"
 #include "gamma.h"
 #include "heat.h"
-#include "led.h"
+#include "pwm.h"
 #include "usart1.h"
 #include "usart2.h"
 
@@ -25,7 +25,7 @@ volatile int do_heat_check;
  * What to do when overheat is detected.
  */
 static void panic_on_overheat() {
-	led_set_state(LED_STOP);
+	pwm_set_state(PWM_STOP);
 	error(ER_HEAT, STR_WITH_LEN("Overheat!"), EA_RESET);
 }
 
@@ -45,8 +45,8 @@ int main() {
 #endif
 
 	gamma_init();
-	led_init();
-	led_set_state(LED_STOP);
+	pwm_init();
+	pwm_set_state(PWM_STOP);
 
 	heat_init(panic_on_overheat);
 
@@ -69,7 +69,7 @@ int main() {
 	// Enable interrupts for heat check.
 	__asm("cpsie i");
 
-	led_set_state(LED_ON);
+	pwm_set_state(PWM_ON);
 
 	// If we are running in config mode, first start the config
 	// console.  The user may choose to continue running the board

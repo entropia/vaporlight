@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "error.h"
-#include "led.h"
+#include "pwm.h"
 
 /*
  * Effectively computes ((raw_brightness / 255) ^ gamma(color)) * (1 << PWM_BITS).

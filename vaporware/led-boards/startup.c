@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "error.h"
 #include "heat.h"
-#include "led.h"
+#include "pwm.h"
 #include "main.h"
 #include "usart1.h"
 #include "usart2.h"
@@ -322,7 +322,7 @@ void __attribute__ ((interrupt("IRQ"))) unexpected_interrupt() {
  * report the error. Just die.
  */
 void __attribute__ ((interrupt("IRQ"))) serious_error() {
-	led_set_state(LED_STOP);
+	pwm_set_state(PWM_STOP);
 
 	// The processor is running at 24MHz, so counting to 12000000 gives about
 	// 2s LED blinking time (assuming 4 cycles for the loop), which is

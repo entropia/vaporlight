@@ -5,7 +5,7 @@
 #include "stm_include/stm32/timer.h"
 
 #include "error.h"
-#include "led.h"
+#include "pwm.h"
 
 /*
  * Configuration to be set at compile time.

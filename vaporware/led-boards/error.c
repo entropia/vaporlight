@@ -3,7 +3,7 @@
 #include "config.h"
 #include "console.h"
 #include "debug.h"
-#include "led.h"
+#include "pwm.h"
 
 #include "stm_include/stm32/gpio.h"
 #include "stm_include/stm32/scb.h"
@@ -80,7 +80,7 @@ void error(err_reason_t reason, char *message, int length, err_action_t action) 
 		return;
 		break;
 	case EA_RESET:
-		led_set_state(LED_STOP);
+		pwm_set_state(PWM_STOP);
 		
 		dled_blink((int) reason);
 		console_write_raw(message, length);
@@ -89,7 +89,7 @@ void error(err_reason_t reason, char *message, int length, err_action_t action) 
 		SCB_AIRCR |= SCB_AIRCR_SYSRESETREQ;
 		break;
 	case EA_PANIC:
-		led_set_state(LED_STOP);
+		pwm_set_state(PWM_STOP);
 		
 		while (1) {
 			dled_blink((int) reason);

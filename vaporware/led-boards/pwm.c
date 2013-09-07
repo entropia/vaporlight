@@ -1,4 +1,4 @@
-#include "led.h"
+#include "pwm.h"
 
 #include "config.h"
 #include "gamma.h"
@@ -57,7 +57,7 @@ static void enable_all() {
 	// 	set_each(CCER, TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E);
 	// or will that produce errors for TIM15-17?
 	// The answer is: It is outside specification and should not be done.
-	
+
 	// Note inverted channels in TIM1!
 	TR(TIM1 , CCER) = TIM_CCER_CC1NE | TIM_CCER_CC2NE | TIM_CCER_CC3NE | TIM_CCER_CC4E;
 	TR(TIM2 , CCER) = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
@@ -75,10 +75,10 @@ static void disable_all() {
 }
 
 /*
- * Initializes the LED module. This function must be called before
+ * Initializes the PWM module. This function must be called before
  * any other function in this module.
  */
-void led_init() {
+void pwm_init() {
 	// Initialize PWM.
 	// Timer configuration should be:
 	// upcounting
@@ -91,7 +91,7 @@ void led_init() {
 		 TIM_CR1_CMS_EDGE |        // Edge mode
 		 TIM_CR1_DIR_UP);          // Count up
 
-	
+
 
 	// Set all outputs to PWM mode 1.
 	// Cannot use set_each here, because timers have
@@ -118,7 +118,7 @@ void led_init() {
 	enable_all();
 
 	// Set the PWM values
-	led_send_frame();
+	pwm_send_frame();
 
 	// Force the registers to be actually loaded.
 	or_each(EGR, TIM_EGR_UG);
@@ -129,40 +129,40 @@ void led_init() {
 
 
 /*
- * Sets the state of all LEDs and the PWM hardware. For available states
- * see led_state_t.
+ * Sets the state of all PWM channels and the PWM hardware. For available states
+ * see pwm_state_t.
  */
-void led_set_state(led_state_t state) {
+void pwm_set_state(pwm_state_t state) {
 	// The order of the following two if-blocks is for safety reasons:
-	// If both LED_ON and LED_OFF are set, the LEDs will end up off.
-	
-	if (state & LED_ON) {
+	// If both PWM_ON and PWM_OFF are set, the LEDs will end up off.
+
+	if (state & PWM_ON) {
 		// Switch on PWM modules
 		// Simply reset CCR values to their previous state.
 		enable_all();
 	}
 
-	if (state & LED_OFF) {
+	if (state & PWM_OFF) {
 		// Switch off PWM modules
 		disable_all();
 	}
 
-	if (state & LED_ZERO) {
+	if (state & PWM_ZERO) {
 		for (unsigned int l = 0; l < MODULE_LENGTH; l++) {
-			led_set_brightness(l, 0);
+			pwm_set_brightness(l, 0);
 		}
 	}
 }
 
 
 /*
- * Sets the brightness value for the given LED to the given value.
- * The value is immediately calibrated, but only stored to be sent
- * to the PWM module later.
+ * Sets the brightness value for the given PWM channel to the given
+ * value.  The value is only stored to be sent to the PWM module
+ * later.
  *
  * Returns an error/success code.
  */
-error_t led_set_brightness(uint8_t led, uint8_t brightness) {
+error_t pwm_set_brightness(uint8_t led, uint8_t brightness) {
 	if (led >= MODULE_LENGTH) {
 		error(ER_BUG, STR_WITH_LEN("LED index out of range"), EA_RESUME);
 		return E_INDEXRANGE;
@@ -175,11 +175,11 @@ error_t led_set_brightness(uint8_t led, uint8_t brightness) {
 }
 
 /*
- * Sends the status of all LEDs to the PWM registers.
+ * Sends the status of all PWM channels to the hardware PWM registers.
  *
  * Returns an error/success code.
  */
-error_t led_send_frame() {
+error_t pwm_send_frame() {
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		*TIMER_CHANNELS[i] = pwm_values[i];
 	}

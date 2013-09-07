@@ -8,7 +8,7 @@
 #include "error.h"
 #include "gamma.h"
 #include "git_version.h"
-#include "led.h"
+#include "pwm.h"
 #include "term.h"
 
 #include "stm_include/stm32/scb.h"
@@ -163,7 +163,7 @@ static error_t run_set_addr(unsigned int args[]) {
  * Expected format for args: { led-index, brightness }
  *
  * Returns E_ARG_FORMAT if the LED index or brightness is out of range.
- * Also passes on the errors form led_set_brightness.
+ * Also passes on the errors form pwm_set_brightness.
  */
 static error_t run_set_brightness(unsigned int args[]) {
 	int index = args[0];
@@ -176,9 +176,9 @@ static error_t run_set_brightness(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	error_t error = led_set_brightness(config.physical_led[index], (uint8_t) brightness);
+	error_t error = pwm_set_brightness(config.physical_led[index], (uint8_t) brightness);
 	if (error) return error;
-	return led_send_frame();
+	return pwm_send_frame();
 }
 
 /*
