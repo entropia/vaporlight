@@ -43,7 +43,7 @@ static const char *LED_OUT_OF_RANGE =
 	"The LED index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
 
 static const char *BRIGHTNESS_OUT_OF_RANGE =
-	"The brightness is out of range (0 to 0xff)" CRLF;
+	"The brightness is out of range (0 to 0xffff)" CRLF;
 
 static const char *SENSOR_OUT_OF_RANGE =
 	"The heat sensor index is out of range (0 to "
@@ -107,13 +107,6 @@ static error_t check_led_index(int index, const char *message) {
 }
 
 /*
- * Checks that the given index is an unsigned 8-bit value.
- */
-static error_t check_byte(int value, const char *message) {
-	return check_range(value, 0x100, message);
-}
-
-/*
  * Checks that the given index is an unsigned 16-bit value.
  */
 static error_t check_short(int value, const char *message) {
@@ -159,11 +152,11 @@ static error_t run_set_brightness(unsigned int args[]) {
 	if (check_led_index(index, LED_OUT_OF_RANGE)) {
 		return E_ARG_FORMAT;
 	}
-	if (check_byte(brightness, BRIGHTNESS_OUT_OF_RANGE)) {
+	if (check_short(brightness, BRIGHTNESS_OUT_OF_RANGE)) {
 		return E_ARG_FORMAT;
 	}
 
-	error_t error = pwm_set_brightness(config.physical_led[index], (uint8_t) brightness);
+	error_t error = pwm_set_brightness(config.physical_led[index], (uint16_t) brightness);
 	if (error) return error;
 	return pwm_send_frame();
 }

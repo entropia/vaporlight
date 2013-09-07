@@ -82,7 +82,7 @@ void pwm_set_state(pwm_state_t state);
  *
  * Returns an error/success code.
  */
-error_t pwm_set_brightness(uint8_t led, uint8_t brightness);
+error_t pwm_set_brightness(uint8_t led, uint16_t brightness);
 
 /*
  * Sends the status of all PWM channels to the hardware PWM registers.

@@ -22,11 +22,11 @@ typedef enum {
 
 static adjust_selection_t selected_line = L_WHITEPOINT;
 
-static uint8_t brightnesses[MODULE_LENGTH] = {[0 ... MODULE_LENGTH - 1] = 0xff};
+static uint16_t brightnesses[MODULE_LENGTH] = {[0 ... MODULE_LENGTH - 1] = 0x0000};
 
 static const char *ROW_LED_INDEX  = "LED index:  ";
 static const char *ROW_WHITEPOINT = "Correction: ";
-static const char *ROW_BRIGHTNESS = "Brightness:   ";
+static const char *ROW_BRIGHTNESS = "Brightness: ";
 
 static const char *HELP_LINE =
 	"Select LED: a/d or h/l; Change line: TAB; Edit: e; Exit: q" CRLF
@@ -46,13 +46,13 @@ void show_status_wp() {
 	}
 
 	console_write(CRLF CRLF);
-	
+
 	console_write(ROW_WHITEPOINT);
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		if (selected_led == i && selected_line == L_WHITEPOINT) {
 			console_write(TERM_INVERT);
 		}
-		
+
 		int phy = config.physical_led[i];
 		console_int_04x(config.white_correction[phy]);
 
@@ -66,10 +66,10 @@ void show_status_wp() {
 		if (selected_led == i && selected_line == L_BRIGHTNESS) {
 			console_write(TERM_INVERT);
 		}
-		
-		console_int_02x(brightnesses[i]);
 
-		console_write(TERM_STANDARD "   ");
+		console_int_04x(brightnesses[i]);
+
+		console_write(TERM_STANDARD " ");
 	}
 
 	console_write(CRLF CRLF);
@@ -85,29 +85,16 @@ static void inc16_unless_overflow(uint16_t *data, int16_t delta) {
 	*data += delta;
 }
 
-static void inc8_unless_overflow(uint8_t *data, int8_t delta) {
-	if ((delta < 0 && *data < -delta) ||
-	    (delta > 0 && *data > 0xff - delta)) {
-		return;
-	}
-
-	*data += delta;
-}
-
 static void inc_selected(int16_t delta) {
 	int phy;
-	uint8_t delta8;
-	
+
 	switch (selected_line) {
 	case L_WHITEPOINT:
 		phy = config.physical_led[selected_led];
 		inc16_unless_overflow(&(config.white_correction[phy]), delta);
 		break;
 	case L_BRIGHTNESS:
-		if (delta < 0x7f && delta > -0x80) {
-			delta8 = (uint8_t) delta;
-			inc8_unless_overflow(&(brightnesses[selected_led]), delta8);
-		}
+		inc16_unless_overflow(&(brightnesses[selected_led]), delta);
 		break;
 	default:
 		error(ER_BUG, STR_WITH_LEN("Unknown value for selected_line"), EA_PANIC);
@@ -133,11 +120,7 @@ static void run_direct_edit() {
 
 	// Second, erase the value there.
 	console_write("    ");
-	if (selected_line == L_WHITEPOINT) {
-		console_write("\b\b\b\b");
-	} else {
-		console_write("\b\b");
-	}
+	console_write("\b\b\b\b");
 
 	// Get the user input
 	char input_line[4];
@@ -145,20 +128,17 @@ static void run_direct_edit() {
 	int pos = 0;
 
 	console_getline(input_line, 4);
-	if (parse_int(input_line, &pos, &input, 16) != E_SUCCESS) {
+	if (parse_int(input_line, &pos, &input, 16) != E_SUCCESS ||
+		input > 0xffff) {
 		// If an error happens, ignore the input.
 		return;
 	}
 
 	if (selected_line == L_WHITEPOINT) {
-		// Because of the length restriction in console_getline,
-		// input cannot possibly overflow.
 		int phy = config.physical_led[selected_led];
 		config.white_correction[phy] = input;
 	} else {
-		if (input <= 0xff) {
-			brightnesses[selected_led] = input;
-		}
+		brightnesses[selected_led] = input;
 	}
 }
 
@@ -243,6 +223,6 @@ int run_command_wp() {
 	if (pwm_send_frame()) {
 		error(ER_BUG, STR_WITH_LEN("Error while sending frame"), EA_PANIC);
 	}
-	
+
 	return 0;
 }

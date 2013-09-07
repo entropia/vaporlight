@@ -161,12 +161,12 @@ void pwm_set_state(pwm_state_t state) {
  *
  * Returns an error/success code.
  */
-error_t pwm_set_brightness(uint8_t led, uint8_t brightness) {
+error_t pwm_set_brightness(uint8_t led, uint16_t brightness) {
 	if (led >= MODULE_LENGTH) {
 		error(ER_BUG, STR_WITH_LEN("LED index out of range"), EA_RESUME);
 		return E_INDEXRANGE;
 	} else {
-		pwm_values[led] = brightness << 8;
+		pwm_values[led] = brightness;
 		return E_SUCCESS;
 	}
 }

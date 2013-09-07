@@ -42,7 +42,7 @@ static uint8_t command_filter(uint8_t command) {
 	debug_string("t");
 	debug_putchar(config.my_address);
 #endif
-	
+
 	return command == config.my_address ||
 		command == CMD_BROADCAST ||
 		command == CMD_STROBE;
@@ -74,7 +74,7 @@ static error_t run_set_leds(uint8_t *led_values, uint8_t length) {
 	}
 
 	for (uint8_t i = 0; i < length; i++) {
-		error = pwm_set_brightness(config.physical_led[i], led_values[i]);
+		error = pwm_set_brightness(config.physical_led[i], led_values[i] << 8);
 
 		if (error) return error;
 	}
