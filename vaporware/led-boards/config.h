@@ -155,6 +155,9 @@ typedef enum {
  * from LED colors to PWM channels.
  */
 typedef struct {
+	// The fillers are required for static initialization
+	// with 0xff bytes (needed for flash pages).
+
 	// 3*3 matrix for color correction.
 	// This converts an input
 	//      ( x )
@@ -165,14 +168,20 @@ typedef struct {
 	// ( r )
 	// ( g ) = color_matrix * xy;
 	// ( b )
-	float color_matrix[9];
+	union {
+		float color_matrix[9];
+		char filler1[9 * sizeof(float)];
+	};
 
 	// The luminosity of each channel at maximum PWM setting.
-	float peak_Y[3];
+	union {
+		float peak_Y[3];
+		char filler2[3 * sizeof(float)];
+	};
 
 	// Index of the PWM channels for red, green and blue.
-	int channels[3];
-} led_info_t;
+	uint8_t channels[3];
+} __attribute__ ((packed)) led_info_t;
 
 /*
  * Struct for a complete set of configuration.
@@ -189,9 +198,7 @@ typedef struct {
 	// Color correction info
 	led_info_t led_infos[MODULE_LENGTH/3];
 
-	// LED permutation. Maps from logical LED to physical LED.
-	uint8_t physical_led[MODULE_LENGTH];
-
+	char padding;
 } __attribute__ ((packed)) config_entry_t;
 
 /*

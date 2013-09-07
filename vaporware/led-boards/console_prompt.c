@@ -58,12 +58,6 @@ static const char *NO_CONFIG_FOUND =
 static const char *UNKNOWN_FLASH_ERROR =
 	"Unknown internal flash error" CRLF;
 
-static const char *LOGICAL_OUT_OF_RANGE =
-	"The logical LED index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
-
-static const char *PHYSICAL_OUT_OF_RANGE =
-	"The phyiscal LED index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
-
 static const char *FLASH_WRITE_FAILED =
 	"Writing to flash failed. Maybe this board is getting old." CRLF;
 
@@ -153,7 +147,7 @@ static error_t run_set_brightness(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	error_t error = pwm_set_brightness(config.physical_led[index], (uint16_t) brightness);
+	error_t error = pwm_set_brightness(index, (uint16_t) brightness);
 	if (error) return error;
 	return pwm_send_frame();
 }
@@ -270,28 +264,6 @@ static error_t run_reload_config(unsigned int args[]) {
 	}
 
 	return error;
-}
-
-/*
- * Runs the "set LED permutation" command.
- *
- * Expected format for args: { logical-index, physical-index }
- *
- * Returns E_ARG_FORMAT if any of the indices are out of range.
- */
-static error_t run_set_permutation(unsigned int args[]) {
-	int logical = args[0];
-	int physical = args[1];
-
-	if (check_led_index(logical, LOGICAL_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-	if (check_led_index(physical, PHYSICAL_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-
-	config.physical_led[logical] = physical;
-	return E_SUCCESS;
 }
 
 /*
@@ -418,13 +390,6 @@ static console_command_t commands[] = {
 		.does_exit = 0,
 	},
 	{
-		.key = 'p',
-		.arg_length = 2,
-		.handler = run_set_permutation,
-		.usage = "p <logical-index> <physical-index>: Set LED permutation",
-		.does_exit = 0,
-	},
-	{
 		.key = 'q',
 		.arg_length = 0,
 		.handler = run_quit,
@@ -487,10 +452,6 @@ static const char *PROGRAM_ID =
 static const char *MODULE_ADDRESS =
 	"Module address: ";
 
-static const char *LED_SETTINGS_HEAD =
-	"LED settings:" CRLF
-	"Log  Phy" CRLF;
-
 static const char *HEAT_SETTINGS_HEAD =
 	"Heat sensor settings:" CRLF
         "Sensor  Limit" CRLF;
@@ -509,26 +470,6 @@ void show_status_prompt() {
 vaporlight build 0000000000000000000000000000000000000000
 This is module 00
 
-LED settings:
-Log  Phy
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-  0    0
-
 Heat sensor settings:
 Sensor   Limit
      0   ffff
@@ -545,18 +486,6 @@ Sensor   Limit
 	console_write(PROGRAM_ID);
 
 	console_write(MODULE_ADDRESS); console_int_02x(config.my_address); console_write(CRLF CRLF);
-
-	console_write(LED_SETTINGS_HEAD);
-	for (int i = 0; i < MODULE_LENGTH; i++) {
-		int phy = config.physical_led[i];
-
-		console_write("  ");
-		console_int_01x(i);
-		console_write("    ");
-		console_int_01x(phy);
-		console_write(CRLF);
-	}
-	console_write(CRLF);
 
 	console_write(HEAT_SETTINGS_HEAD);
 

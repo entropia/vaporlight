@@ -17,23 +17,94 @@ config_entry_t config = {
 		{
 			// Example values for sRGB
 			.color_matrix = {
-				 2.409638554216868,  -0.6693440428380186, -0.321285140562249,
-				 -1.204819277108434,  2.186523873270861,   0.0495314591700134,
-				 -1.204819277108434, -1.517179830432843,   1.271753681392236
+				 2.409638554216868f,  -0.6693440428380186f, -0.321285140562249f,
+				 -1.204819277108434f,  2.186523873270861f,   0.0495314591700134f,
+				 -1.204819277108434f, -1.517179830432843f,   1.271753681392236f
 			},
 			.peak_Y = {
-				1000,
-				1000,
-				1000
+				10000,
+				10000,
+				10000
 			},
 			.channels = {
 				0,
 				1,
 				2
 			}
+		},
+		{
+			// Example values for sRGB
+			.color_matrix = {
+				 2.409638554216868f,  -0.6693440428380186f, -0.321285140562249f,
+				 -1.204819277108434f,  2.186523873270861f,   0.0495314591700134f,
+				 -1.204819277108434f, -1.517179830432843f,   1.271753681392236f
+			},
+			.peak_Y = {
+				10000,
+				10000,
+				10000
+			},
+			.channels = {
+				3,
+				4,
+				5
+			}
+		},
+		{
+			// Example values for sRGB
+			.color_matrix = {
+				 2.409638554216868f,  -0.6693440428380186f, -0.321285140562249f,
+				 -1.204819277108434f,  2.186523873270861f,   0.0495314591700134f,
+				 -1.204819277108434f, -1.517179830432843f,   1.271753681392236f
+			},
+			.peak_Y = {
+				10000,
+				10000,
+				10000
+			},
+			.channels = {
+				6,
+				7,
+				8
+			}
+		},
+		{
+			// Example values for sRGB
+			.color_matrix = {
+				 2.409638554216868f,  -0.6693440428380186f, -0.321285140562249f,
+				 -1.204819277108434f,  2.186523873270861f,   0.0495314591700134f,
+				 -1.204819277108434f, -1.517179830432843f,   1.271753681392236f
+			},
+			.peak_Y = {
+				10000,
+				10000,
+				10000
+			},
+			.channels = {
+				9,
+				10,
+				11
+			}
+		},
+		{
+			// Example values for sRGB
+			.color_matrix = {
+				 2.409638554216868f,  -0.6693440428380186f, -0.321285140562249f,
+				 -1.204819277108434f,  2.186523873270861f,   0.0495314591700134f,
+				 -1.204819277108434f, -1.517179830432843f,   1.271753681392236f
+			},
+			.peak_Y = {
+				10000,
+				10000,
+				10000
+			},
+			.channels = {
+				12,
+				13,
+				14
+			}
 		}
 	},
-	.physical_led = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
 };
 
 /*
@@ -60,10 +131,18 @@ typedef struct {
 
 config_page_t config_page __attribute__ ((section (".config"))) = {
 	.entry_status = REPEAT(0xffff, ENTRY_COUNT),
-	.entries = { [0 ... ENTRY_COUNT - 1] = {
+	.entries = {
+		[0 ... ENTRY_COUNT - 1] = {
 			.my_address = 0xffff,
 			.heat_limit = REPEAT(0xffff, HEAT_SENSOR_LEN),
-			.physical_led = REPEAT(0xff, MODULE_LENGTH),
+			.led_infos = {
+				[0 ... MODULE_LENGTH/3 - 1] = {
+					.filler1 = REPEAT(0xff, 9 * sizeof(float)),
+					.filler2 = REPEAT(0xff, 3 * sizeof(float)),
+					.channels = REPEAT(0xff, 3)
+				}
+			},
+			.padding = 0xff
 		}
 	}
 };
@@ -181,9 +260,6 @@ static const char *ADDRESS_IS_INVALID =
 static const char *ADDRESS_IS_BROADCAST =
 	"Warning: The board's address is the broadcast address." CRLF;
 
-static const char *LED_PERMUTATION_IS_INVALID =
-	"The LED permutation is invalid." CRLF;
-
 /*
  * Checks if the configuration in config is valid.  Returns 1 if the
  * configuration is valid, 0 otherwise.  This function may print an
@@ -201,22 +277,6 @@ int config_valid() {
 	}
 	if (config.my_address == 0xfe) {
 		console_write(ADDRESS_IS_BROADCAST);
-	}
-
-	// Check that the LED permutation is really a valid permutation
-	// from [0..MODULE_LENGTH] -> [0..MODULE_LENGTH]
-	char led_seen[MODULE_LENGTH];
-	for (int i = 0; i < MODULE_LENGTH; i++) {
-		led_seen[i] = 0;
-	}
-	for (int i = 0; i < MODULE_LENGTH; i++) {
-		led_seen[config.physical_led[i]]++;
-	}
-	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (led_seen[i] != 1) {
-			console_write(LED_PERMUTATION_IS_INVALID);
-			valid = 0;
-		}
 	}
 
 	return valid;

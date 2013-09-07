@@ -167,7 +167,7 @@ int run_command_wp() {
 
 	// Update all LEDs.
 	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (pwm_set_brightness(config.physical_led[i], brightnesses[i]) != E_SUCCESS) {
+		if (pwm_set_brightness(i, brightnesses[i]) != E_SUCCESS) {
 			error(ER_BUG, STR_WITH_LEN("Error while updating LEDs"), EA_PANIC);
 		}
 	}
