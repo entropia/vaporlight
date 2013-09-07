@@ -41,7 +41,7 @@ static float clamp(float x, float min, float max) {
  */
 void color_correct(led_info_t *info,
 		   uint16_t x, uint16_t y, uint16_t Y,
-		   uint16_t *r, uint16_t *g, uint16_t *b) {
+		   uint16_t rgb[static 3]) {
 
 	// First, get the ratio of the PWM channels right.  This is
 	// done by finding the barycentric coordinates of xyY within
@@ -71,7 +71,7 @@ void color_correct(led_info_t *info,
 		rgb_ratio[i] = clamp(scale * rgb_ratio[i], 0.0f, 1.0f);
 	}
 
-	*r = (uint16_t)(rgb_ratio[0] * 0xffff);
-	*g = (uint16_t)(rgb_ratio[1] * 0xffff);
-	*b = (uint16_t)(rgb_ratio[2] * 0xffff);
+	rgb[RED] = (uint16_t)(rgb_ratio[0] * 0xffff);
+	rgb[GREEN] = (uint16_t)(rgb_ratio[1] * 0xffff);
+	rgb[BLUE] = (uint16_t)(rgb_ratio[2] * 0xffff);
 }

@@ -14,6 +14,5 @@
  */
 void color_correct(led_info_t *info,
 		   uint16_t x, uint16_t y, uint16_t Y,
-		   uint16_t *r, uint16_t *g, uint16_t *b);
-
+		   uint16_t rgb[static 3]);
 #endif

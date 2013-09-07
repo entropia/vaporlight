@@ -271,11 +271,11 @@ int config_valid() {
 
 	// Check if the module has been given a valid address.
 	// Warn if the address is the broadcast address.
-	if (config.my_address == 0xff) {
+	if (config.my_address > 0xfd) {
 		console_write(ADDRESS_IS_INVALID);
 		valid = 0;
 	}
-	if (config.my_address == 0xfe) {
+	if (config.my_address == 0xfd) {
 		console_write(ADDRESS_IS_BROADCAST);
 	}
 

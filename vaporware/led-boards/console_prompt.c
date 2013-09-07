@@ -42,6 +42,9 @@ static const char *WARN_BROADCAST_ADDR =
 static const char *CHANNEL_OUT_OF_RANGE =
 	"The PWM channel index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
 
+static const char *LED_OUT_OF_RANGE =
+	"The RGB LED index is out of range (0 to " XSTR(RGB_LED_COUNT) "-1)" CRLF;
+
 static const char *BRIGHTNESS_OUT_OF_RANGE =
 	"The brightness is out of range (0 to 0xffff)" CRLF;
 
@@ -76,6 +79,17 @@ static const char *BEGINNING_ECHO =
 static const char *PASTE_NOW =
 	"Paste a file with one command per line, finish with q" CRLF;
 
+static const char *ENTER_MATRIX =
+	"Enter correction matrix" CRLF
+	"(one line per entry, by rows, hexadecimal bit pattern)" CRLF;
+
+static const char *ENTER_MAX_Y =
+	"Enter maximum Y value" CRLF
+	"(one line per entry, red-green-blue, hexadecimal bit pattern)" CRLF;
+
+static const char *ENTER_AGAIN =
+	"Not a valid number. Try again." CRLF;
+
 /*
  * Checks that the given value is greater than or equal to 0 and less
  * then the given limit. Prints the given message and returns
@@ -95,6 +109,13 @@ static error_t check_range(int value, int limit, const char *message) {
  */
 static error_t check_channel_index(int index, const char *message) {
 	return check_range(index, MODULE_LENGTH, message);
+}
+
+/*
+ * Checks that the given index is a valid PWM channel index.
+ */
+static error_t check_led_index(int index, const char *message) {
+	return check_range(index, RGB_LED_COUNT, message);
 }
 
 /*
@@ -166,20 +187,25 @@ static error_t run_set_color(unsigned int args[]) {
 	int y = args[2];
 	int Y = args[3];
 
+	if (check_led_index(index, LED_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+
 	led_info_t *info = &config.led_infos[index];
 
-	uint16_t r, g, b;
+	uint16_t rgb[3];
 
-	color_correct(info, x, y, Y, &r, &g, &b);
+	color_correct(info, x, y, Y, rgb);
 
 	console_write("Color correction: ");
-	console_int_d(r); console_write(" ");
-	console_int_d(g); console_write(" ");
-	console_int_d(b); console_write(CRLF);
+	console_int_d(rgb[RED]); console_write(" ");
+	console_int_d(rgb[GREEN]); console_write(" ");
+	console_int_d(rgb[BLUE]); console_write(CRLF);
 
-	pwm_set_brightness(info->channels[RED], r);
-	pwm_set_brightness(info->channels[GREEN], g);
-	pwm_set_brightness(info->channels[BLUE], b);
+	for(int i = 0; i < 3; i++) {
+		error_t error = pwm_set_brightness(info->channels[i], rgb[i]);
+		if (error) return error;
+	}
 
 	return E_SUCCESS;
 }
@@ -272,6 +298,78 @@ static error_t run_reload_config(unsigned int args[]) {
 }
 
 /*
+ * Runs the "set correction matrix" command.
+ *
+ * Expected format for args: { led-index }
+ *
+ * Returns E_ARG_FORMAT if the LED index is out of range.
+ */
+static error_t run_set_correction(unsigned int args[]) {
+	int led = args[0];
+
+	if (check_led_index(led, LED_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+
+	led_info_t *info = &config.led_infos[led];
+
+	console_write(ENTER_MATRIX);
+
+	for (int i = 0; i < 9; i++) {
+		int valid = 0;
+		do {
+			char line[80];
+			console_getline(line, 80);
+			unsigned int target;
+			int pos = 0;
+			error_t error = parse_int(line, &pos, &target, 16);
+			if (error != E_SUCCESS) {
+				console_write(ENTER_AGAIN);
+			} else {
+				float *f = (float*) &target;
+				info->color_matrix[i] = *f;
+				valid = 1;
+			}
+		} while (!valid);
+
+	}
+
+	return E_SUCCESS;
+}
+
+/*
+ * Runs the "set PWM channels" command.
+ *
+ * Expected format for args: { led-index, channel-r, channel-g, channel-b }
+ *
+ * Returns the error reported by load_config.
+ */
+static error_t run_set_pwm_channels(unsigned int args[]) {
+	int led = args[0];
+	int rgb[3] = {
+		args[1],
+		args[2],
+		args[3]
+	};
+
+	if (check_led_index(led, LED_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+	for (int i = 0; i < 3; i++) {
+		if (check_channel_index(rgb[i], CHANNEL_OUT_OF_RANGE)) {
+			return E_ARG_FORMAT;
+		}
+	}
+
+	led_info_t *info = &config.led_infos[led];
+	for(int i = 0; i < 3; i++) {
+		info->channels[i] = rgb[i];
+	}
+
+	return E_SUCCESS;
+}
+
+/*
  * Runs the "quit" command.
  *
  * This function always succeeds and returns E_SUCCESS.
@@ -338,6 +436,46 @@ static error_t run_switch_to_wp(unsigned int args[]) {
 }
 
 /*
+ * Runs the "set maximum Y value" command.
+ *
+ * Expected format for args: { led-index }
+ *
+ * Returns E_ARG_FORMAT if the LED index is out of range.
+ */
+static error_t run_set_max_Y(unsigned int args[]) {
+	int led = args[0];
+
+	if (check_led_index(led, LED_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+
+	led_info_t *info = &config.led_infos[led];
+
+	console_write(ENTER_MAX_Y);
+
+	for (int i = 0; i < 3; i++) {
+		int valid = 0;
+		do {
+			char line[80];
+			console_getline(line, 80);
+			unsigned int target;
+			int pos = 0;
+			error_t error = parse_int(line, &pos, &target, 16);
+			if (error != E_SUCCESS) {
+				console_write(ENTER_AGAIN);
+			} else {
+				float *f = (float*) &target;
+				info->peak_Y[i] = *f;
+				valid = 1;
+			}
+		} while (!valid);
+
+	}
+
+	return E_SUCCESS;
+}
+
+/*
  * This is actually implemented after the command array, because it
  * needs access to it.
  */
@@ -395,6 +533,13 @@ static console_command_t commands[] = {
 		.does_exit = 0,
 	},
 	{
+		.key = 'm',
+		.arg_length = 1,
+		.handler = run_set_correction,
+		.usage = "p <led-index>: set an LED's correction matrix",
+		.does_exit = 0,
+	},
+	{
 		.key = 'p',
 		.arg_length = 4,
 		.handler = run_set_pwm_channels,
@@ -427,6 +572,13 @@ static console_command_t commands[] = {
 		.arg_length = 0,
 		.handler = run_switch_to_wp,
 		.usage = "W: Switch to whitepoint adjustment operation",
+		.does_exit = 0,
+	},
+	{
+		.key = 'y',
+		.arg_length = 1,
+		.handler = run_set_max_Y,
+		.usage = "y <led-index>: Set maximum Y value for LED",
 		.does_exit = 0,
 	},
 	{
@@ -464,9 +616,16 @@ static const char *PROGRAM_ID =
 static const char *MODULE_ADDRESS =
 	"Module address: ";
 
+static const char *IS_BROADCAST =
+	" (broadcast)";
+
 static const char *HEAT_SETTINGS_HEAD =
 	"Heat sensor settings:" CRLF
         "Sensor  Limit" CRLF;
+
+static const char *LED_SETTINGS_HEAD =
+	"LED settings:" CRLF
+	"LED  channel  correction matrix            Y_max" CRLF;
 
 static const char *CONSOLE_PROMPT =
 	"> ";
@@ -480,35 +639,86 @@ void show_status_prompt() {
 	// Sketch for the config console screen
 /*
 vaporlight build 0000000000000000000000000000000000000000
-This is module 00
+This is module 99
 
 Heat sensor settings:
 Sensor   Limit
-     0   ffff
-     0   ffff
-     0   ffff
-     0   ffff
-     0   ffff
-     0   ffff
+    99   9999
+    99   9999
+    99   9999
+    99   9999
+    99   9999
+    99   9999
 
+LED settings:
+LED  channel  correction matrix           Y_max
+ 99  99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+ 99  99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+ 99  99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+ 99  99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+ 99  99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
+     99       ffffffff ffffffff ffffffff  ffffffff
 >
 */
 
 
 	console_write(PROGRAM_ID);
 
-	console_write(MODULE_ADDRESS); console_int_02x(config.my_address); console_write(CRLF CRLF);
+	console_write(MODULE_ADDRESS);
+	console_int_3d(config.my_address);
+	if (config.my_address == 0xfd) {
+		console_write(IS_BROADCAST);
+	}
+	console_write(CRLF CRLF);
 
 	console_write(HEAT_SETTINGS_HEAD);
 
 	for (int i = 0; i < HEAT_SENSOR_LEN; i++) {
-		console_write("     ");
-		console_int_01x(i);
 		console_write("   ");
-		console_int_04x(config.heat_limit[i]);
+		console_int_2d(i);
+		console_write("   ");
+		console_int_5d(config.heat_limit[i]);
 		console_write(CRLF);
 	}
 	console_write(CRLF);
+
+	console_write(LED_SETTINGS_HEAD);
+	for (int l = 0; l < RGB_LED_COUNT; l++) {
+		led_info_t *info = &config.led_infos[l];
+
+		for (int c = 0; c < 3; c++) {
+			if (c == 0) {
+				console_int_3d(l);
+			} else {
+				console_write("   ");
+			}
+			console_write("  ");
+
+			console_int_2d(info->channels[c]);
+			console_write("       ");
+
+			for (int i = 0; i < 3; i++) {
+				uint32_t *ptr = (uint32_t*) &info->color_matrix[3*c+i];
+				console_int_08x(*ptr);
+				console_putchar(' ');
+			}
+			console_write("  ");
+
+			uint32_t *ptr = (uint32_t*) &info->peak_Y[c];
+			console_int_08x(*ptr);
+			console_write(CRLF);
+		}
+		console_write(CRLF);
+	}
 
 	console_write(CONSOLE_PROMPT);
 }

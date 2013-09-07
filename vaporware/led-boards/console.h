@@ -45,16 +45,20 @@ void console_write_raw(const char *message, int length);
  * character. Abbreviating macros are available, following the format
  * conventions of printf.
  */
-void console_int(int value, int base, int min_width, char padding);
+void console_int(unsigned int value, int base, int min_width, char padding);
 
 #define console_int_d(value)   console_int(value, 10, 0, ' ')
 #define console_int_0d(value)  console_int(value, 10, 0, '0')
+#define console_int_2d(value)  console_int(value, 10, 2, ' ')
+#define console_int_3d(value)  console_int(value, 10, 3, ' ')
 #define console_int_4d(value)  console_int(value, 10, 4, ' ')
+#define console_int_5d(value)  console_int(value, 10, 5, ' ')
 #define console_int_x(value)   console_int(value, 16, 0, ' ')
 #define console_int_0x(value)  console_int(value, 16, 0, '0')
 #define console_int_01x(value) console_int(value, 16, 1, '0')
 #define console_int_02x(value) console_int(value, 16, 2, '0')
 #define console_int_04x(value) console_int(value, 16, 4, '0')
+#define console_int_08x(value) console_int(value, 16, 8, '0')
 
 /*
  * Returns the next character received on the console.

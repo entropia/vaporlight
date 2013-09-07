@@ -54,7 +54,7 @@ void console_write_raw(const char *message, int length) {
  * character. Abbreviating macros are available, following the format
  * conventions of printf.
  */
-void console_int(int value, int base, int min_width, char padding) {
+void console_int(unsigned int value, int base, int min_width, char padding) {
 #define INT_WIDTH 32
 
 	char buf[INT_WIDTH]; // Enough for 32 bit integers in binary.
