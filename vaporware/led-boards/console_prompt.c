@@ -67,9 +67,6 @@ static const char *PHYSICAL_OUT_OF_RANGE =
 static const char *FLASH_WRITE_FAILED =
 	"Writing to flash failed. Maybe this board is getting old." CRLF;
 
-static const char *CORRECTION_OUT_OF_RANGE =
-	"The whitepoint correction is out of range (0 to 0xffff)" CRLF;
-
 static const char *CONFIG_IS_INVALID =
 	"The current state of configuration is invalid." CRLF;
 
@@ -324,29 +321,6 @@ static error_t run_save_config(unsigned int args[]) {
 }
 
 /*
- * Runs the "set whitepoint correction" command.
- *
- * Expected format for args: { led-index, correction }
- *
- * Returns E_ARG_FORMAT if the LED index ro whitepoint correction are
- * out of range.
- */
-static error_t run_set_whitepoint(unsigned int args[]) {
-	int index = args[0];
-	int correction = args[1];
-
-	if (check_led_index(index, LED_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-	if (check_short(correction, CORRECTION_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-
-	config.white_correction[config.physical_led[index]] = correction;
-	return E_SUCCESS;
-}
-
-/*
  * Runs the "switch to whitepoint adjustment operation" command.
  *
  * Expected format for args: { }
@@ -438,13 +412,6 @@ static console_command_t commands[] = {
 		.does_exit = 0,
 	},
 	{
-		.key = 'w',
-		.arg_length = 2,
-		.handler = run_set_whitepoint,
-		.usage = "w <led-index> <correction>: Set whitepoint correction",
-		.does_exit = 0,
-	},
-	{
 		.key = 'W',
 		.arg_length = 0,
 		.handler = run_switch_to_wp,
@@ -488,7 +455,7 @@ static const char *MODULE_ADDRESS =
 
 static const char *LED_SETTINGS_HEAD =
 	"LED settings:" CRLF
-	"Log  Phy  corr" CRLF;
+	"Log  Phy" CRLF;
 
 static const char *HEAT_SETTINGS_HEAD =
 	"Heat sensor settings:" CRLF
@@ -509,24 +476,24 @@ vaporlight build 0000000000000000000000000000000000000000
 This is module 00
 
 LED settings:
-Log  Phy  corr
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
-  0    0  ffff
+Log  Phy
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
+  0    0
 
 Heat sensor settings:
 Sensor   Limit
@@ -553,8 +520,6 @@ Sensor   Limit
 		console_int_01x(i);
 		console_write("    ");
 		console_int_01x(phy);
-		console_write("  ");
-		console_int_04x(config.white_correction[phy]);
 		console_write(CRLF);
 	}
 	console_write(CRLF);

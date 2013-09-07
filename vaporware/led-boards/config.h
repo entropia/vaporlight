@@ -145,9 +145,6 @@ static const uint16_t CONFIG_ENTRY_OLD = 0x0000;
  * Struct for a complete set of configuration.
  */
 typedef struct {
-	// The whitepoint correction for each LED in this module.
-	// Maps from physical LED to whitepoint correction.
-	uint16_t white_correction[MODULE_LENGTH];
 
 	// This module's address.
 	// It is stored as a 16-bit integer so that the whole struct has a size

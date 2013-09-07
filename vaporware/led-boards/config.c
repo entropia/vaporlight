@@ -11,7 +11,6 @@
  */
 
 config_entry_t config = {
-	.white_correction = REPEAT(0xffff, MODULE_LENGTH),
 	.my_address = 0x00fd,
 	.heat_limit = REPEAT(0xffff, HEAT_SENSOR_LEN),
 	.physical_led = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
@@ -42,7 +41,6 @@ typedef struct {
 config_page_t config_page __attribute__ ((section (".config"))) = {
 	.entry_status = REPEAT(0xffff, ENTRY_COUNT),
 	.entries = { [0 ... ENTRY_COUNT - 1] = {
-			.white_correction = REPEAT(0xffff, MODULE_LENGTH),
 			.my_address = 0xffff,
 			.heat_limit = REPEAT(0xffff, HEAT_SENSOR_LEN),
 			.physical_led = REPEAT(0xff, MODULE_LENGTH),

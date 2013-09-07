@@ -15,17 +15,9 @@
  */
 static int selected_led = 0;
 
-typedef enum {
-	L_WHITEPOINT,
-	L_BRIGHTNESS
-} adjust_selection_t;
-
-static adjust_selection_t selected_line = L_WHITEPOINT;
-
 static uint16_t brightnesses[MODULE_LENGTH] = {[0 ... MODULE_LENGTH - 1] = 0x0000};
 
 static const char *ROW_LED_INDEX  = "LED index:  ";
-static const char *ROW_WHITEPOINT = "Correction: ";
 static const char *ROW_BRIGHTNESS = "Brightness: ";
 
 static const char *HELP_LINE =
@@ -47,23 +39,9 @@ void show_status_wp() {
 
 	console_write(CRLF CRLF);
 
-	console_write(ROW_WHITEPOINT);
-	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (selected_led == i && selected_line == L_WHITEPOINT) {
-			console_write(TERM_INVERT);
-		}
-
-		int phy = config.physical_led[i];
-		console_int_04x(config.white_correction[phy]);
-
-		console_write(TERM_STANDARD " ");
-	}
-
-	console_write(CRLF CRLF);
-
 	console_write(ROW_BRIGHTNESS);
 	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (selected_led == i && selected_line == L_BRIGHTNESS) {
+		if (selected_led == i) {
 			console_write(TERM_INVERT);
 		}
 
@@ -86,20 +64,7 @@ static void inc16_unless_overflow(uint16_t *data, int16_t delta) {
 }
 
 static void inc_selected(int16_t delta) {
-	int phy;
-
-	switch (selected_line) {
-	case L_WHITEPOINT:
-		phy = config.physical_led[selected_led];
-		inc16_unless_overflow(&(config.white_correction[phy]), delta);
-		break;
-	case L_BRIGHTNESS:
-		inc16_unless_overflow(&(brightnesses[selected_led]), delta);
-		break;
-	default:
-		error(ER_BUG, STR_WITH_LEN("Unknown value for selected_line"), EA_PANIC);
-		break;
-	}
+	inc16_unless_overflow(&(brightnesses[selected_led]), delta);
 }
 
 static void run_direct_edit() {
@@ -107,13 +72,12 @@ static void run_direct_edit() {
 	// Reset to top left.
 	console_write(TERM_CURSOR_RESET);
 	// Move to correct line
-	int down = (selected_line == L_WHITEPOINT) ?
-		2 : 4;
+	int down = 2;
 	for (int i = 0; i < down; i++) {
 		console_write("\n");
 	}
 	// Move to correct column
-	int right = strlen(ROW_WHITEPOINT) + selected_led * 5;
+	int right = strlen(ROW_BRIGHTNESS) + selected_led * 5;
 	for (int i = 0; i < right; i++) {
 		console_write(TERM_CURSOR_RIGHT);
 	}
@@ -134,12 +98,7 @@ static void run_direct_edit() {
 		return;
 	}
 
-	if (selected_line == L_WHITEPOINT) {
-		int phy = config.physical_led[selected_led];
-		config.white_correction[phy] = input;
-	} else {
-		brightnesses[selected_led] = input;
-	}
+	brightnesses[selected_led] = input;
 }
 
 static void leds_dark() {
@@ -170,13 +129,6 @@ int run_command_wp() {
 		// Exit early here to avoid resetting the brightnesses to the stored
 		// values.
 		return 0;
-		break;
-	case '\t':
-		if (selected_line == L_WHITEPOINT) {
-			selected_line = L_BRIGHTNESS;
-		} else {
-			selected_line = L_WHITEPOINT;
-		}
 		break;
 	case 'd':
 	case 'l':
