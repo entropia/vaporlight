@@ -46,17 +46,6 @@
 #define TR(timer, reg) MMIO32((timer) + (reg))
 
 /*
- * Enum for the LED colors available. The values correspond to those
- * used in USART communication and indices into the gamma table list.
- */
-typedef enum {
-	RED = 0,
-	GREEN = 1,
-	BLUE = 2,
-	WHITE = 3
-} color_t;
-
-/*
  * The states the PWM can be set to using pwm_set_state.
  *     PWM_OFF:     Disables PWM output (hardware).
  *     PWM_ON:      Enables PWM output (hardware).

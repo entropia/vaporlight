@@ -45,9 +45,6 @@ static const char *LED_OUT_OF_RANGE =
 static const char *BRIGHTNESS_OUT_OF_RANGE =
 	"The brightness is out of range (0 to 0xff)" CRLF;
 
-static const char *COLOR_CODE_INVALID =
-	"The color code is invalid (0, 1, 2, 3)" CRLF;
-
 static const char *SENSOR_OUT_OF_RANGE =
 	"The heat sensor index is out of range (0 to "
 	XSTR(HEAT_SENSOR_LEN) "-1)" CRLF;
@@ -169,30 +166,6 @@ static error_t run_set_brightness(unsigned int args[]) {
 	error_t error = pwm_set_brightness(config.physical_led[index], (uint8_t) brightness);
 	if (error) return error;
 	return pwm_send_frame();
-}
-
-/*
- * Runs the "set LED color" command.
- *
- * Expected format for args: { led-index, color }
- *
- * Returns E_ARG_FORMAT if the LED index is out of range or the
- * color code is invalid.
- */
-static error_t run_set_color(unsigned int args[]) {
-	int index = args[0];
-	int color = args[1];
-
-	if (check_led_index(index, LED_OUT_OF_RANGE)) {
-		return E_ARG_FORMAT;
-	}
-	if (color != RED && color != GREEN && color != BLUE && color != WHITE) {
-		console_write(COLOR_CODE_INVALID);
-		return E_ARG_FORMAT;
-	}
-
-	config.led_color[config.physical_led[index]] = color;
-	return E_SUCCESS;
 }
 
 /*
@@ -416,13 +389,6 @@ static console_command_t commands[] = {
 		.does_exit = 0,
 	},
 	{
-		.key = 'c',
-		.arg_length = 2,
-		.handler = run_set_color,
-		.usage = "c <led-index> <color>: Set color",
-		.does_exit = 0,
-	},
-	{
 		.key = 'e',
 		.arg_length = 0,
 		.handler = run_echo,
@@ -529,7 +495,7 @@ static const char *MODULE_ADDRESS =
 
 static const char *LED_SETTINGS_HEAD =
 	"LED settings:" CRLF
-	"Log  Phy  corr  color" CRLF;
+	"Log  Phy  corr" CRLF;
 
 static const char *HEAT_SETTINGS_HEAD =
 	"Heat sensor settings:" CRLF
@@ -550,24 +516,24 @@ vaporlight build 0000000000000000000000000000000000000000
 This is module 00
 
 LED settings:
-Log  Phy  corr   color
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
-  0    0  ffff      1
+Log  Phy  corr
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
+  0    0  ffff
 
 Heat sensor settings:
 Sensor   Limit
@@ -596,8 +562,6 @@ Sensor   Limit
 		console_int_01x(phy);
 		console_write("  ");
 		console_int_04x(config.white_correction[phy]);
-		console_write("      ");
-		console_int_01x(config.led_color[phy]);
 		console_write(CRLF);
 	}
 	console_write(CRLF);

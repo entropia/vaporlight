@@ -160,9 +160,6 @@ typedef struct {
 	// LED permutation. Maps from logical LED to physical LED.
 	uint8_t physical_led[MODULE_LENGTH];
 
-	// LED colors. Maps from physical LED to color.
-	color_t led_color[MODULE_LENGTH];
-
 } __attribute__ ((packed)) config_entry_t;
 
 /*

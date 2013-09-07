@@ -15,7 +15,6 @@ config_entry_t config = {
 	.my_address = 0x00fd,
 	.heat_limit = REPEAT(0xffff, HEAT_SENSOR_LEN),
 	.physical_led = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
-	.led_color = REPEAT(WHITE, MODULE_LENGTH)
 };
 
 /*
@@ -47,7 +46,6 @@ config_page_t config_page __attribute__ ((section (".config"))) = {
 			.my_address = 0xffff,
 			.heat_limit = REPEAT(0xffff, HEAT_SENSOR_LEN),
 			.physical_led = REPEAT(0xff, MODULE_LENGTH),
-			.led_color = REPEAT(0xffffffff, MODULE_LENGTH)
 		}
 	}
 };
@@ -89,14 +87,14 @@ error_t save_config() {
 #ifdef TRACE_FLASH
 	debug_string("save");
 #endif
-	
+
 	error_t error;
-	
+
 	// Look for the entry last in use and an entry not yet used.
 	// Assuming there is only one entry in use.
 	int last_in_use = -1;
 	int unused = -1;
-	
+
 	for (int entry = 0; entry < ENTRY_COUNT; entry++) {
 		if (config_page.entry_status[entry] == CONFIG_ENTRY_IN_USE) {
 			last_in_use = entry;
@@ -122,14 +120,14 @@ error_t save_config() {
 #endif
 		error = flash_erase_page(&config_page);
 		if (error != E_SUCCESS) goto out;
-		
+
 		return save_config();
 	}
 
 	// Save the new configuration.
 	_Static_assert(sizeof(config_entry_t) % sizeof(uint16_t) == 0,
 		       "config_entry_t must be repadded!");
-	
+
 	error = flash_copy(&config_page.entries[unused], &config,
 			   sizeof(config_entry_t) / sizeof(uint16_t));
 	if (error != E_SUCCESS) goto out;
@@ -168,9 +166,6 @@ static const char *ADDRESS_IS_BROADCAST =
 static const char *LED_PERMUTATION_IS_INVALID =
 	"The LED permutation is invalid." CRLF;
 
-static const char *LED_COLOR_IS_INVALID =
-	"The LED color is invalid." CRLF;
-
 /*
  * Checks if the configuration in config is valid.  Returns 1 if the
  * configuration is valid, 0 otherwise.  This function may print an
@@ -179,7 +174,7 @@ static const char *LED_COLOR_IS_INVALID =
  */
 int config_valid() {
 	int valid = 1;
-	
+
 	// Check if the module has been given a valid address.
 	// Warn if the address is the broadcast address.
 	if (config.my_address == 0xff) {
@@ -202,17 +197,6 @@ int config_valid() {
 	for (int i = 0; i < MODULE_LENGTH; i++) {
 		if (led_seen[i] != 1) {
 			console_write(LED_PERMUTATION_IS_INVALID);
-			valid = 0;
-		}
-	}
-
-	// Check that all colors are valid.
-	for (int i = 0; i < MODULE_LENGTH; i++) {
-		if (config.led_color[i] != RED &&
-		    config.led_color[i] != GREEN &&
-		    config.led_color[i] != BLUE &&
-		    config.led_color[i] != WHITE) {
-			console_write(LED_COLOR_IS_INVALID);
 			valid = 0;
 		}
 	}
