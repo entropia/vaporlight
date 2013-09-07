@@ -17,6 +17,8 @@
 // Length of this module in LEDs
 #define MODULE_LENGTH 16
 
+#define RGB_LED_COUNT ((MODULE_LENGTH)/3)
+
 // Mapping from timer channels to PWM registers.
 static volatile uint32_t * const TIMER_CHANNELS[MODULE_LENGTH] = {
 	&TR(TIM2,  CCR1),
@@ -196,7 +198,7 @@ typedef struct {
 	uint16_t heat_limit[HEAT_SENSOR_LEN];
 
 	// Color correction info
-	led_info_t led_infos[MODULE_LENGTH/3];
+	led_info_t led_infos[RGB_LED_COUNT];
 
 	char padding;
 } __attribute__ ((packed)) config_entry_t;

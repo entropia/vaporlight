@@ -39,8 +39,8 @@ static const char *ADDR_OUT_OF_RANGE =
 static const char *WARN_BROADCAST_ADDR =
 	"Warning: Setting address to the broadcast address" CRLF;
 
-static const char *LED_OUT_OF_RANGE =
-	"The LED index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
+static const char *CHANNEL_OUT_OF_RANGE =
+	"The PWM channel index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
 
 static const char *BRIGHTNESS_OUT_OF_RANGE =
 	"The brightness is out of range (0 to 0xffff)" CRLF;
@@ -91,9 +91,9 @@ static error_t check_range(int value, int limit, const char *message) {
 }
 
 /*
- * Checks that the given index is a valid LED index.
+ * Checks that the given index is a valid PWM channel index.
  */
-static error_t check_led_index(int index, const char *message) {
+static error_t check_channel_index(int index, const char *message) {
 	return check_range(index, MODULE_LENGTH, message);
 }
 
@@ -131,16 +131,16 @@ static error_t run_set_addr(unsigned int args[]) {
 /*
  * Runs the "set brightness" command.
  *
- * Expected format for args: { led-index, brightness }
+ * Expected format for args: { channel-index, brightness }
  *
- * Returns E_ARG_FORMAT if the LED index or brightness is out of range.
- * Also passes on the errors form pwm_set_brightness.
+ * Returns E_ARG_FORMAT if the PWM channel index or brightness is out
+ * of range.  Also passes on the errors from pwm_set_brightness.
  */
 static error_t run_set_brightness(unsigned int args[]) {
 	int index = args[0];
 	int brightness = args[1];
 
-	if (check_led_index(index, LED_OUT_OF_RANGE)) {
+	if (check_channel_index(index, CHANNEL_OUT_OF_RANGE)) {
 		return E_ARG_FORMAT;
 	}
 	if (check_short(brightness, BRIGHTNESS_OUT_OF_RANGE)) {
@@ -157,7 +157,8 @@ static error_t run_set_brightness(unsigned int args[]) {
  *
  * Expected format for args: { led-index, x, y, Y }
  *
- * Always succeeds.
+ * Returns E_ARG_FORMAT if the RGB LED index is out of range. Also
+ * passes on the errors from pwm_set_brightness.
  */
 static error_t run_set_color(unsigned int args[]) {
 	int index = args[0];
@@ -175,6 +176,10 @@ static error_t run_set_color(unsigned int args[]) {
 	console_int_d(r); console_write(" ");
 	console_int_d(g); console_write(" ");
 	console_int_d(b); console_write(CRLF);
+
+	pwm_set_brightness(info->channels[RED], r);
+	pwm_set_brightness(info->channels[GREEN], g);
+	pwm_set_brightness(info->channels[BLUE], b);
 
 	return E_SUCCESS;
 }
@@ -351,7 +356,7 @@ static console_command_t commands[] = {
 		.arg_length = 2,
 		.handler = run_set_brightness,
 		.usage =
-		"b <led-index> <brightness>: Set brightness of a single PWM channel",
+		"b <channel-index> <brightness>: Set brightness of a single PWM channel",
 		.does_exit = 0,
 	},
 	{
@@ -387,6 +392,13 @@ static console_command_t commands[] = {
 		.arg_length = 0,
 		.handler = run_reload_config,
 		.usage = "l: Reload configuration from flash",
+		.does_exit = 0,
+	},
+	{
+		.key = 'p',
+		.arg_length = 4,
+		.handler = run_set_pwm_channels,
+		.usage = "p <led-index> <channel-r> <channel-g> <channel-b>: set an LED's PWM channels",
 		.does_exit = 0,
 	},
 	{
@@ -426,7 +438,7 @@ static console_command_t commands[] = {
 	},
 };
 #define COMMAND_COUNT (sizeof(commands) / sizeof(console_command_t))
-#define MAX_ARG_LEN 5
+#define MAX_ARG_LEN 4
 
 /*
  * Runs the "show help" command.
