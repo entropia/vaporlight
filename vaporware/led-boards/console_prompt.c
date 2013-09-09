@@ -34,38 +34,38 @@ typedef struct {
 #define LINE_LENGTH 80
 
 static const char *ADDR_OUT_OF_RANGE =
-	"The address is out of range (0x00 to 0xfd)" CRLF;
+	"Address out of range (0x00 to 0xfd)" CRLF;
 
 static const char *WARN_BROADCAST_ADDR =
-	"Warning: Setting address to the broadcast address" CRLF;
+	"Warning: Setting address to broadcast" CRLF;
 
 static const char *CHANNEL_OUT_OF_RANGE =
-	"The PWM channel index is out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
+	"PWM channel index out of range (0 to " XSTR(MODULE_LENGTH) "-1)" CRLF;
 
 static const char *LED_OUT_OF_RANGE =
-	"The RGB LED index is out of range (0 to " XSTR(RGB_LED_COUNT) "-1)" CRLF;
+	"RGB LED index out of range (0 to " XSTR(RGB_LED_COUNT) "-1)" CRLF;
 
 static const char *BRIGHTNESS_OUT_OF_RANGE =
-	"The brightness is out of range (0 to 0xffff)" CRLF;
+	"Brightness out of range (0 to 0xffff)" CRLF;
 
 static const char *SENSOR_OUT_OF_RANGE =
-	"The heat sensor index is out of range (0 to "
+	"Heat sensor index out of range (0 to "
 	XSTR(HEAT_SENSOR_LEN) "-1)" CRLF;
 
 static const char *HEAT_LIMIT_OUT_OF_RANGE =
-	"The heat limit is out of range (0 to 0xffff)" CRLF;
+	"Heat limit out of range (0 to 0xffff)" CRLF;
 
 static const char *NO_CONFIG_FOUND =
-	"No configuration has been found in flash" CRLF;
+	"No configuration in flash" CRLF;
 
 static const char *UNKNOWN_FLASH_ERROR =
-	"Unknown internal flash error" CRLF;
+	"Internal flash error" CRLF;
 
 static const char *FLASH_WRITE_FAILED =
-	"Writing to flash failed. Maybe this board is getting old." CRLF;
+	"Writing to flash failed." CRLF;
 
 static const char *CONFIG_IS_INVALID =
-	"The current state of configuration is invalid." CRLF;
+	"Invalid configuration state." CRLF;
 
 static const char *RELOADING_CONFIG =
 	"Reloading configuration..." CRLF;
@@ -80,12 +80,10 @@ static const char *PASTE_NOW =
 	"Paste a file with one command per line, finish with q" CRLF;
 
 static const char *ENTER_MATRIX =
-	"Enter correction matrix" CRLF
-	"(one line per entry, by rows, hexadecimal bit pattern)" CRLF;
+	"Enter correction matrix" CRLF;
 
 static const char *ENTER_MAX_Y =
-	"Enter maximum Y value" CRLF
-	"(one line per entry, red-green-blue, hexadecimal bit pattern)" CRLF;
+	"Enter maximum Y value" CRLF;
 
 /*
  * Checks that the given value is greater than or equal to 0 and less
@@ -455,14 +453,14 @@ static console_command_t commands[] = {
 		.arg_length = 2,
 		.handler = run_set_brightness,
 		.usage =
-		"b <channel-index> <brightness>: Set brightness of a single PWM channel",
+		"b <channel> <brightness>: Set brightness of a single PWM channel",
 		.does_exit = 0,
 	},
 	{
 		.key = 'c',
 		.arg_length = 4,
 		.handler = run_set_color,
-		.usage = "c: <led-index> <x> <y> <Y>: Set color of a logical LED (calibrated)",
+		.usage = "c <led> <x> <y> <Y>: Switch LED to xyY color",
 		.does_exit = 0,
 	},
 	{
@@ -483,49 +481,49 @@ static console_command_t commands[] = {
 		.key = 'h',
 		.arg_length = 2,
 		.handler = run_set_heat_limit,
-		.usage = "h <sensor-index> <heat-limit>: Set heat limit",
+		.usage = "h <sensor> <heat-limit>: Set heat limit",
 		.does_exit = 0,
 	},
 	{
 		.key = 'l',
 		.arg_length = 0,
 		.handler = run_reload_config,
-		.usage = "l: Reload configuration from flash",
+		.usage = "l: Reload configuration",
 		.does_exit = 0,
 	},
 	{
 		.key = 'm',
 		.arg_length = 1,
 		.handler = run_set_correction,
-		.usage = "p <led-index>: set an LED's correction matrix",
+		.usage = "m <led>: set an LED's correction matrix",
 		.does_exit = 0,
 	},
 	{
 		.key = 'p',
 		.arg_length = 4,
 		.handler = run_set_pwm_channels,
-		.usage = "p <led-index> <channel-r> <channel-g> <channel-b>: set an LED's PWM channels",
+		.usage = "p <led> <r-chan> <g-chan> <b-chan>: set an LED's PWM channels",
 		.does_exit = 0,
 	},
 	{
 		.key = 'q',
 		.arg_length = 0,
 		.handler = run_quit,
-		.usage = "q: Quit and continue in normal mode",
+		.usage = "q: Quit to normal mode",
 		.does_exit = 1,
 	},
 	{
 		.key = 'r',
 		.arg_length = 0,
 		.handler = run_reset,
-		.usage = "r: Reset the module",
+		.usage = "r: Reset",
 		.does_exit = 0,
 	},
 	{
 		.key = 's',
 		.arg_length = 0,
 		.handler = run_save_config,
-		.usage = "s: Save configuration to flash",
+		.usage = "s: Save configuration",
 		.does_exit = 0,
 	},
 	{
@@ -749,16 +747,16 @@ static const char *WRONG_COMMAND =
 	"Unknown command" CRLF;
 
 static const char *ARGUMENTS_ARE_MISSING =
-	"Not enough arguments have been passed" CRLF;
+	"Not enough arguments" CRLF;
 
 static const char *ARGUMENTS_ARE_INVALID =
-	"An argument was not a valid integer" CRLF;
+	"Argument not a valid integer" CRLF;
 
 static const char *UNKNOWN_PARSER_ERROR =
-	"An error occurred while parsing your input" CRLF;
+	"Error occurred while parsing input" CRLF;
 
 static const char *ERROR_RUNNING_COMMAND =
-	"An error occured while running the command" CRLF;
+	"Error occured while running command" CRLF;
 
 static const char *USAGE =
 	"Usage: ";
