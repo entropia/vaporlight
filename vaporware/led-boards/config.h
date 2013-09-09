@@ -63,7 +63,7 @@ static const int USART_FAIL_TRESHOLD = 20;
 // Number of USART command buffers.
 #define USART_BUFFER_COUNT 4
 // Length of a USART command buffer
-#define CMD_BUFFER_LEN 20
+#define CMD_BUFFER_LEN 36
 
 // Start-of-command marker
 #define START_MARK 0x55
