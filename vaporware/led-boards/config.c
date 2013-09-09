@@ -142,7 +142,7 @@ config_page_t config_page __attribute__ ((section (".config"))) = {
 					.channels = REPEAT(0xff, 3)
 				}
 			},
-			.padding = 0xff
+			.backup_channel = 0xff
 		}
 	}
 };

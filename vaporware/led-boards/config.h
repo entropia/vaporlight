@@ -200,7 +200,8 @@ typedef struct {
 	// Color correction info
 	led_info_t led_infos[RGB_LED_COUNT];
 
-	char padding;
+	// The channel that is not used by any LED.
+	uint8_t backup_channel;
 } __attribute__ ((packed)) config_entry_t;
 
 /*
