@@ -45,7 +45,7 @@ static usart_filter_t usart_filter;
  * the ISR may not store another command (the command will be dropped), because
  * all buffers already contain a command to be read by usart_next_command.
  */
-volatile static int commands_pending = 0;
+static volatile int commands_pending = 0;
 
 /*
  * Also shared between ISR and usart_next_command.
@@ -54,7 +54,7 @@ volatile static int commands_pending = 0;
  * no command buffer was free. It is checked by the next call to
  * usart_next_command and an error message is sent when overflow has occurred.
  */
-volatile static int command_overflow = 0;
+static volatile int command_overflow = 0;
 
 // A ring buffer for concurrent read and write.
 static unsigned char isr_buffers[USART_BUFFER_COUNT][CMD_BUFFER_LEN];

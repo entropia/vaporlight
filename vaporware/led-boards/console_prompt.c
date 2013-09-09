@@ -218,10 +218,10 @@ static error_t run_set_color(unsigned int args[]) {
  * Always succeeds.
  */
 static error_t run_echo(unsigned int args[]) {
+	(void)args;
 	char buf[80];
 
 	console_write(BEGINNING_ECHO);
-
 	do {
 		console_getline(buf, 80);
 	} while (strncmp(buf, "q", 80));
@@ -237,6 +237,7 @@ static error_t run_echo(unsigned int args[]) {
  * Always succeeds (although the commands in the file may not).
  */
 static error_t run_paste_file(unsigned int args[]) {
+	(void)args;
 	console_write(PASTE_NOW);
 
 	int should_exit = 0;
@@ -278,7 +279,7 @@ static error_t run_set_heat_limit(unsigned int args[]) {
  * Returns the error reported by load_config.
  */
 static error_t run_reload_config(unsigned int args[]) {
-
+	(void)args;
 	console_write(RELOADING_CONFIG);
 
 	error_t error = load_config();
@@ -375,6 +376,7 @@ static error_t run_set_pwm_channels(unsigned int args[]) {
  * This function always succeeds and returns E_SUCCESS.
  */
 static error_t run_quit(unsigned int args[]) {
+	(void)args;
 	return E_SUCCESS;
 }
 
@@ -386,8 +388,8 @@ static error_t run_quit(unsigned int args[]) {
  * This function does not return.
  */
 static error_t run_reset(unsigned int args[]) {
+	(void)args;
 	SCB_AIRCR = SCB_AIRCR_VECTKEY | SCB_AIRCR_SYSRESETREQ;
-
 	return E_SUCCESS;
 }
 
@@ -399,6 +401,7 @@ static error_t run_reset(unsigned int args[]) {
  * Returns the error reported by save_config.
  */
 static error_t run_save_config(unsigned int args[]) {
+	(void)args;
 	if (!config_valid(config)) {
 		console_write(CONFIG_IS_INVALID);
 		return E_NOCONFIG;
@@ -600,6 +603,7 @@ static console_command_t commands[] = {
  * This function always succeeds and returns E_SUCCESS;
  */
 static error_t run_help(unsigned int args[]) {
+	(void)args;
 	for (int i = 0; i < COMMAND_COUNT; i++) {
 		console_write(commands[i].usage);
 		console_write(CRLF);

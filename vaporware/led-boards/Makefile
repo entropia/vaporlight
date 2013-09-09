@@ -35,7 +35,7 @@ OBJDUMP        = arm-none-eabi-objdump
 
 # Override is only needed by avr-lib build system.
 
-override CFLAGS        = -Wall $(OPTIMIZE) -std=c99 -msoft-float -mfloat-abi=soft -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
+override CFLAGS        = -Wall -Wextra $(OPTIMIZE) -std=c99 -msoft-float -mfloat-abi=soft -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
 override LDFLAGS       = -Wl,-Map,$(PRG).map -nostartfiles -Tlinker.ld
 
 
