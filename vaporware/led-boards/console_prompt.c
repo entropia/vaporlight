@@ -203,6 +203,60 @@ static error_t run_set_color(unsigned int args[]) {
 		if (error) return error;
 	}
 
+	return pwm_send_frame();
+}
+
+static const char *COLOR_NAMES[] = {
+	"red" CRLF,
+	"green" CRLF,
+	"blue" CRLF,
+};
+
+static const char *VALUE_NAMES[] = {
+	"x (in 65536ths) = ",
+	"y (in 65536ths) = ",
+	"Y (integer part) = ",
+	"Y (fractional part to 5 places) = "
+};
+
+/*
+ * Runs the "calibrate LED" command.
+ *
+ * Expected format for args: { led-index }
+ *
+ * Returns E_ARG_FORMAT if the RGB LED index is out of range.
+ */
+static error_t run_calibrate_led(unsigned int args[]) {
+	int index = args[0];
+
+	if (check_led_index(index, LED_OUT_OF_RANGE)) {
+		return E_ARG_FORMAT;
+	}
+
+	float matrix[9];
+
+	for (int c = 0; c < 3; c++) {
+		console_write(COLOR_NAMES[c]);
+		for (int v = 0; v < 2; v++) {
+			unsigned int input = console_ask_int(VALUE_NAMES[v], 10);
+			matrix[3 * v + c] = input / 65536.0f;
+		}
+
+		unsigned int Y_int = console_ask_int(VALUE_NAMES[2], 10);
+		unsigned int Y_frac = console_ask_int(VALUE_NAMES[3], 10);
+
+		float Y = Y_int + (Y_frac * 100000.0);
+		config.led_infos[index].peak_Y[c] = Y;
+	}
+
+	// Fill in the homogenous coordinate entries
+	for (int i = 0; i < 3; i++) {
+		matrix[6 + i] = 1.0f;
+	}
+
+	float *out = config.led_infos[index].color_matrix;
+	invert_3x3(matrix, out);
+
 	return E_SUCCESS;
 }
 
@@ -462,6 +516,13 @@ static console_command_t commands[] = {
 		.arg_length = 4,
 		.handler = run_set_color,
 		.usage = "c <led> <x> <y> <Y>: Switch LED to xyY color",
+		.does_exit = 0,
+	},
+	{
+		.key = 'C',
+		.arg_length = 1,
+		.handler = run_calibrate_led,
+		.usage = "C <led>: Set calibration of LED",
 		.does_exit = 0,
 	},
 	{
