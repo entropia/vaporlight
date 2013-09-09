@@ -32,7 +32,7 @@ void console_putchar(const char message);
 /*
  * Prints raw data on the console.
  */
-void console_write_raw(const char *message, int length);
+void console_write_raw(const char *message, unsigned length);
 
 /*
  * Prints a string on the console.
@@ -45,7 +45,7 @@ void console_write_raw(const char *message, int length);
  * character. Abbreviating macros are available, following the format
  * conventions of printf.
  */
-void console_int(unsigned int value, int base, int min_width, char padding);
+void console_int(unsigned value, unsigned base, int min_width, char padding);
 
 #define console_int_d(value)   console_int(value, 10, 0, ' ')
 #define console_int_0d(value)  console_int(value, 10, 0, '0')

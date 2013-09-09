@@ -40,8 +40,8 @@ void console_putchar(const char message) {
 /*
  * Prints raw data on the console.
  */
-void console_write_raw(const char *message, int length) {
-	for (int i = 0; i < length; i++) {
+void console_write_raw(const char *message, unsigned length) {
+	for (unsigned i = 0; i < length; i++) {
 		usart1_putchar(message[i]);
 	}
 }
@@ -54,16 +54,16 @@ void console_write_raw(const char *message, int length) {
  * character. Abbreviating macros are available, following the format
  * conventions of printf.
  */
-void console_int(unsigned int value, int base, int min_width, char padding) {
+void console_int(unsigned value, unsigned base, int min_width, char padding) {
 #define INT_WIDTH 32
 
 	char buf[INT_WIDTH]; // Enough for 32 bit integers in binary.
 	int pos = INT_WIDTH;
 
 	do {
-		int digit = value % base;
+		unsigned int digit = value % base;
 
-		if (0 <= digit && digit <= 9) {
+		if (digit <= 9) {
 			buf[--pos] = '0' + digit;
 		} else {
 			buf[--pos] = 'a' + (digit - 10);
@@ -298,7 +298,7 @@ static int digit_value(char digit) {
  * unchanged.
  */
 error_t parse_int(char *line, int *pos, unsigned int *target, int base) {
-	int result = 0;
+	unsigned result = 0;
 	int p;
 
 	if (base > MAX_BASE) {

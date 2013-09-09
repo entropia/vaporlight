@@ -155,8 +155,8 @@ config_page_t config_page __attribute__ ((section (".config"))) = {
  */
 error_t load_config() {
 	// Look for an entry currently in use.
-	int in_use = -1;
-	for (int entry = 0; entry < ENTRY_COUNT; entry++) {
+	unsigned in_use = ENTRY_COUNT;
+	for (unsigned int entry = 0; entry < ENTRY_COUNT; entry++) {
 		if (config_page.entry_status[entry] == CONFIG_ENTRY_IN_USE) {
 			in_use = entry;
 			break;
@@ -167,7 +167,7 @@ error_t load_config() {
 	debug_putchar((unsigned char) in_use);
 #endif
 
-	if (in_use == -1) {
+	if (in_use == ENTRY_COUNT) {
 		// No entry in use has been found.
 		return E_NOCONFIG;
 	}
@@ -189,16 +189,16 @@ error_t save_config() {
 
 	// Look for the entry last in use and an entry not yet used.
 	// Assuming there is only one entry in use.
-	int last_in_use = -1;
-	int unused = -1;
+	unsigned last_in_use = ENTRY_COUNT;
+	unsigned unused = ENTRY_COUNT;
 
-	for (int entry = 0; entry < ENTRY_COUNT; entry++) {
+	for (unsigned entry = 0; entry < ENTRY_COUNT; entry++) {
 		if (config_page.entry_status[entry] == CONFIG_ENTRY_IN_USE) {
 			last_in_use = entry;
 		}
 
 		if (config_page.entry_status[entry] == CONFIG_ENTRY_EMPTY &&
-		    unused == -1) {
+		    unused == ENTRY_COUNT) {
 			unused = entry;
 		}
 	}
@@ -211,7 +211,7 @@ error_t save_config() {
 	flash_unlock();
 
 	// If no entries are free, erase config page and try again
-	if (unused == -1) {
+	if (unused == ENTRY_COUNT) {
 #ifdef TRACE_FLASH
 		debug_string("erase");
 #endif

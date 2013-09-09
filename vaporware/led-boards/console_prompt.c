@@ -604,7 +604,7 @@ static console_command_t commands[] = {
  */
 static error_t run_help(unsigned int args[]) {
 	(void)args;
-	for (int i = 0; i < COMMAND_COUNT; i++) {
+	for (unsigned i = 0; i < COMMAND_COUNT; i++) {
 		console_write(commands[i].usage);
 		console_write(CRLF);
 	}
@@ -734,7 +734,7 @@ LED  channel  correction matrix           Y_max
  * found, returns NULL.
  */
 static console_command_t *get_command(char key) {
-	for (int i = 0; i < COMMAND_COUNT; i++) {
+	for (unsigned i = 0; i < COMMAND_COUNT; i++) {
 		if (commands[i].key == key) {
 			return &commands[i];
 		}
