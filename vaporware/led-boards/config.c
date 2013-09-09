@@ -185,6 +185,10 @@ error_t save_config() {
 	debug_string("save");
 #endif
 
+	if (!config_valid()) {
+		error(ER_BUG, STR_WITH_LEN("Trying to save invalid config"), EA_PANIC);
+	}
+
 	error_t error;
 
 	// Look for the entry last in use and an entry not yet used.
