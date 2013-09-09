@@ -27,7 +27,7 @@ BUS_BAUDRATE = 500000
 
 # End of configuration section.
 
-OBJ            = color.o command.o config.o console.o console_prompt.o console_wp.o debug.o error.o fail.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
+OBJ            = color.o command.o config.o console.o console_prompt.o debug.o error.o fail.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
 
 CC             = arm-none-eabi-gcc
 OBJCOPY        = arm-none-eabi-objcopy
