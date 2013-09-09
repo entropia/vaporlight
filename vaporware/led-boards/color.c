@@ -78,5 +78,21 @@ void color_correct(led_info_t *info,
 		rgb_ratio[i] *= scale;
 		rgb[i] = (uint16_t)(rgb_ratio[i] * 0xffff);
 	}
+}
+
+/*
+ * Converts a flatly counted channel index (i.e. 0 to 15 standing for
+ * LED0 red, LED0 green, LED0 blue, LED1 red, ...) to the PWM channel
+ * index to use for this LED.
+ */
+uint8_t convert_channel_index(uint8_t c) {
+	if (c == 15) {
+		return config.backup_channel;
+	} else {
+		uint8_t led = c / 3;
+		uint8_t channel = c % 3;
+		led_info_t *info = &config.led_infos[led];
+		return info->channels[channel];
+	}
 
 }
