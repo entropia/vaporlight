@@ -57,21 +57,26 @@ void color_correct(led_info_t *info,
 
 	mat_x_vec(info->color_matrix, in, rgb_ratio);
 
+	// Approximate the desired color with one that is actually
+	// in the gamut (i.e. 0 <= rgb_ratio[i] <= 1).
+	// TODO This does not actually find the closest match.
+	for (int i = 0; i < 3; i++) {
+		rgb_ratio[i] = clamp(rgb_ratio[i], 0.0f, 1.0f);
+	}
+
 	// Now adjust for the desired luminosity.
 	// Note that the color takes precedence: If reproducing the
 	// color at the requested luminosity it not possible, it will
 	// be reproduced darker.
 	float total_Y = dot(rgb_ratio, info->peak_Y);
-	// The maximum possible scaling factor that will still keep
-	// the color.  (Actually the minimum of all possible scales)
-	float max_scale = MIN(MIN(1 / rgb_ratio[0], 1 / rgb_ratio[1]), 1 / rgb_ratio[2]);
-	float scale = MIN(Y / total_Y, max_scale);
+	float scale = MIN(MIN(MIN(Y / total_Y,
+				  1.0f / rgb_ratio[0]),
+			      1.0f / rgb_ratio[1]),
+			  1.0f / rgb_ratio[2]);
 
 	for (int i = 0; i < 3; i++) {
-		rgb_ratio[i] = clamp(scale * rgb_ratio[i], 0.0f, 1.0f);
+		rgb_ratio[i] *= scale;
+		rgb[i] = (uint16_t)(rgb_ratio[i] * 0xffff);
 	}
 
-	rgb[RED] = (uint16_t)(rgb_ratio[0] * 0xffff);
-	rgb[GREEN] = (uint16_t)(rgb_ratio[1] * 0xffff);
-	rgb[BLUE] = (uint16_t)(rgb_ratio[2] * 0xffff);
 }
