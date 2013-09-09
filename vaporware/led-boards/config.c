@@ -260,6 +260,9 @@ static const char *ADDRESS_IS_INVALID =
 static const char *ADDRESS_IS_BROADCAST =
 	"Warning: The board's address is the broadcast address." CRLF;
 
+static const char *CHANNEL_ASSIGNMENT_IS_INVALID =
+	"The PWM channel assignment of the LEDs is invalid at channel ";
+
 /*
  * Checks if the configuration in config is valid.  Returns 1 if the
  * configuration is valid, 0 otherwise.  This function may print an
@@ -278,6 +281,33 @@ int config_valid() {
 	if (config.my_address == 0xfd) {
 		console_write(ADDRESS_IS_BROADCAST);
 	}
+
+	// Check that all the PWM channels assigned to LEDs are
+	// distinct
+	int led_seen[MODULE_LENGTH] = {}; // 0 initialization
+	uint8_t backup_channel = MODULE_LENGTH;
+
+	for (int l = 0; l < RGB_LED_COUNT; l++) {
+		led_info_t *info = &config.led_infos[l];
+		for (int c = 0; c < 3; c++) {
+			led_seen[info->channels[c]]++;
+		}
+	}
+
+	for (unsigned i = 0; i < MODULE_LENGTH; i++) {
+		if (led_seen[i] != 1) {
+			if (backup_channel == MODULE_LENGTH) {
+				backup_channel = i;
+			} else {
+				console_write(CHANNEL_ASSIGNMENT_IS_INVALID);
+				console_int_d(i);
+				console_write(CRLF);
+				valid = 0;
+			}
+		}
+	}
+
+	config.backup_channel = backup_channel;
 
 	return valid;
 }
