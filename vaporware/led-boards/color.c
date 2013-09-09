@@ -94,5 +94,24 @@ uint8_t convert_channel_index(uint8_t c) {
 		led_info_t *info = &config.led_infos[led];
 		return info->channels[channel];
 	}
+}
 
+/*
+ * Writes the inverse of the 3x3 matrix pointed to by in to the 3x3
+ * matrix pointed to by out.
+ */
+void invert_3x3(float in[static 9], float out[static 9]) {
+	float det = in[0] * (in[8]*in[4] - in[7]*in[5])
+		- in[3] * (in[8]*in[1] - in[7]*in[2])
+		+ in[6] * (in[5]*in[1] - in[4]*in[2]);
+
+	out[0] = 1.0f/det *  (in[8]*in[4] - in[7]*in[5]);
+	out[1] = 1.0f/det * -(in[8]*in[1] - in[7]*in[2]);
+	out[2] = 1.0f/det *  (in[5]*in[1] - in[4]*in[2]);
+	out[3] = 1.0f/det * -(in[8]*in[3] - in[6]*in[5]);
+	out[4] = 1.0f/det *  (in[8]*in[0] - in[6]*in[2]);
+	out[5] = 1.0f/det * -(in[5]*in[0] - in[3]*in[2]);
+	out[6] = 1.0f/det *  (in[7]*in[3] - in[6]*in[4]);
+	out[7] = 1.0f/det * -(in[7]*in[0] - in[6]*in[1]);
+	out[8] = 1.0f/det *  (in[4]*in[0] - in[3]*in[1]);
 }

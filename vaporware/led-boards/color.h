@@ -23,4 +23,10 @@ void color_correct(led_info_t *info,
  */
 uint8_t convert_channel_index(uint8_t c);
 
+/*
+ * Writes the inverse of the 3x3 matrix pointed to by in to the 3x3
+ * matrix pointed to by out.
+ */
+void invert_3x3(float in[static 9], float out[static 9]);
+
 #endif
