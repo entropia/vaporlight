@@ -87,9 +87,6 @@ static const char *ENTER_MAX_Y =
 	"Enter maximum Y value" CRLF
 	"(one line per entry, red-green-blue, hexadecimal bit pattern)" CRLF;
 
-static const char *ENTER_AGAIN =
-	"Not a valid number. Try again." CRLF;
-
 /*
  * Checks that the given value is greater than or equal to 0 and less
  * then the given limit. Prints the given message and returns
@@ -317,22 +314,9 @@ static error_t run_set_correction(unsigned int args[]) {
 	console_write(ENTER_MATRIX);
 
 	for (int i = 0; i < 9; i++) {
-		int valid = 0;
-		do {
-			char line[80];
-			console_getline(line, 80);
-			unsigned int target;
-			int pos = 0;
-			error_t error = parse_int(line, &pos, &target, 16);
-			if (error != E_SUCCESS) {
-				console_write(ENTER_AGAIN);
-			} else {
-				float *f = (float*) &target;
-				info->color_matrix[i] = *f;
-				valid = 1;
-			}
-		} while (!valid);
-
+		int input = console_ask_int("", 16);
+		float *f = (float*) &input;
+		info->color_matrix[i] = *f;
 	}
 
 	return E_SUCCESS;
@@ -444,22 +428,9 @@ static error_t run_set_max_Y(unsigned int args[]) {
 	console_write(ENTER_MAX_Y);
 
 	for (int i = 0; i < 3; i++) {
-		int valid = 0;
-		do {
-			char line[80];
-			console_getline(line, 80);
-			unsigned int target;
-			int pos = 0;
-			error_t error = parse_int(line, &pos, &target, 16);
-			if (error != E_SUCCESS) {
-				console_write(ENTER_AGAIN);
-			} else {
-				float *f = (float*) &target;
-				info->peak_Y[i] = *f;
-				valid = 1;
-			}
-		} while (!valid);
-
+		int input = console_ask_int("", 16);
+		float *f = (float*) &input;
+		info->peak_Y[i] = *f;
 	}
 
 	return E_SUCCESS;

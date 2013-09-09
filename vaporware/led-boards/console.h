@@ -100,4 +100,9 @@ void console_run();
  */
 error_t parse_int(char *line, int *pos, unsigned int *target, int base);
 
+/*
+ * Prompts for an integer input until a valid integer is entered.
+ */
+unsigned int console_ask_int(const char *prompt, int base);
+
 #endif

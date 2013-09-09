@@ -296,3 +296,26 @@ error_t parse_int(char *line, int *pos, unsigned int *target, int base) {
 		return E_ARG_FORMAT;
 	}
 }
+
+static const char *ENTER_AGAIN =
+	"Not a valid number. Try again." CRLF;
+
+/*
+ * Prompts for an integer input until a valid integer is entered.
+ */
+unsigned int console_ask_int(const char *prompt, int base) {
+	while (1) {
+		char line[80];
+		console_write(prompt);
+		console_getline(line, 80);
+		int pos = 0;
+		unsigned int target;
+
+		error_t error = parse_int(line, &pos, &target, base);
+		if (error != E_SUCCESS) {
+			console_write(ENTER_AGAIN);
+		} else {
+			return target;
+		}
+	}
+}
