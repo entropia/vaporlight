@@ -163,7 +163,8 @@ static error_t run_set_brightness(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	error_t error = pwm_set_brightness(index, (uint16_t) brightness);
+	uint8_t pwm_channel = convert_channel_index(index);
+	error_t error = pwm_set_brightness(pwm_channel, (uint16_t) brightness);
 	if (error) return error;
 	return pwm_send_frame();
 }
