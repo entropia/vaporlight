@@ -200,11 +200,6 @@ static void (*show_status)() = show_status_prompt;
 static int (*run_console_command)() = run_command_prompt;
 
 /*
-
-static const char *CONFIG_IS_INVALID =
-	"The current state of configuration is invalid." CRLF;
-
-/*
  * Runs the configuration console. This function may or may not
  * return, depending on whether the user chose to continue running or
  * reset the board.
@@ -218,8 +213,6 @@ void console_run() {
 		if (exit) {
 			if (config_valid(config)) {
 				break;
-			} else {
-				console_write(CONFIG_IS_INVALID);
 			}
 		}
 	}
