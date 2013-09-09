@@ -7,7 +7,6 @@
 
 #include "config.h"
 #include "console_prompt.h"
-#include "console_wp.h"
 #include "error.h"
 #include "term.h"
 #include "usart1.h"
@@ -201,25 +200,6 @@ static void (*show_status)() = show_status_prompt;
 static int (*run_console_command)() = run_command_prompt;
 
 /*
- * Sets the console operation mode. This affects the way in which the
- * console's status is shown and how commands are interpreted.
- */
-void console_set_operation(console_operation_t op) {
-	switch (op) {
-	case PROMPT:
-		show_status = show_status_prompt;
-		run_console_command = run_command_prompt;
-		break;
-	case WP_ADJUST:
-		show_status = show_status_wp;
-		run_console_command = run_command_wp;
-		break;
-	default:
-		error(ER_BUG, STR_WITH_LEN("Unknown console operation"), EA_PANIC);
-		break;
-	}
-}
-
 
 static const char *CONFIG_IS_INVALID =
 	"The current state of configuration is invalid." CRLF;

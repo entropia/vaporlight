@@ -426,19 +426,6 @@ static error_t run_save_config(unsigned int args[]) {
 }
 
 /*
- * Runs the "switch to whitepoint adjustment operation" command.
- *
- * Expected format for args: { }
- *
- * This function always succeeds and returns E_SUCCESS;
- */
-static error_t run_switch_to_wp(unsigned int args[]) {
-	console_set_operation(WP_ADJUST);
-
-	return E_SUCCESS;
-}
-
-/*
  * Runs the "set maximum Y value" command.
  *
  * Expected format for args: { led-index }
@@ -568,13 +555,6 @@ static console_command_t commands[] = {
 		.arg_length = 0,
 		.handler = run_save_config,
 		.usage = "s: Save configuration to flash",
-		.does_exit = 0,
-	},
-	{
-		.key = 'W',
-		.arg_length = 0,
-		.handler = run_switch_to_wp,
-		.usage = "W: Switch to whitepoint adjustment operation",
 		.does_exit = 0,
 	},
 	{

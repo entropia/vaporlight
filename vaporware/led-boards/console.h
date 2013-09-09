@@ -10,11 +10,6 @@
 #include "error.h"
 #include "command.h"
 
-typedef enum {
-	PROMPT,   // Normal mode for entering commands
-	WP_ADJUST // Interactive whitepoint adjustment mode.
-} console_operation_t;
-
 /*
  * The maximum base in which parse_int can operate.
  */
@@ -87,12 +82,6 @@ void console_getline(char *buffer, int count);
  * pressed after a certain timeout.
  */
 vl_mode_t console_ask_mode();
-
-/*
- * Sets the console operation mode. This affects the way in which the
- * console's status is shown and how commands are interpreted.
- */
-void console_set_operation(console_operation_t op);
 
 /*
  * Runs the configuration console. This function may or may not
