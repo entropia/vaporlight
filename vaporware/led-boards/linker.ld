@@ -17,9 +17,13 @@ SECTIONS {
 		*(.rodata .rodata.*)
 
 		. = ALIGN(4);
-
-		_data_flash_start = .;
 	} > FLASH
+
+        .ARM.exidx : {
+                   *(.ARM.exidx .gnu.linkonce.armexidx.*)
+        }
+
+        _data_flash_start = .;
 
 	.bss : {
 		. = ALIGN(4);
