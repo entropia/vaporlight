@@ -4,6 +4,7 @@
  */
 
 #include "error.h"
+#include "fixedpoint.h"
 
 /*
  * Sends a character via the "debug TX" USART.
@@ -29,6 +30,8 @@ void debug_hex(int x, int width);
  * is padded at the left with spaces.
  */
 void debug_int(unsigned int x, int min_width);
+
+void debug_fixed(fixed_t x);
 
 /*
  * Starts the cycle counter.

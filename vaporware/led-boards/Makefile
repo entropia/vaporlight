@@ -27,7 +27,7 @@ BUS_BAUDRATE = 500000
 
 # End of configuration section.
 
-OBJ            = color.o command.o config.o console.o console_prompt.o debug.o error.o fail.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
+OBJ            = color.o command.o config.o console.o console_prompt.o debug.o error.o fail.o fixedpoint.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
 
 CC             = arm-none-eabi-gcc
 OBJCOPY        = arm-none-eabi-objcopy
@@ -35,7 +35,7 @@ OBJDUMP        = arm-none-eabi-objdump
 
 # Override is only needed by avr-lib build system.
 
-override CFLAGS        = -Wall -Wextra $(OPTIMIZE) -std=c99 -msoft-float -mfloat-abi=soft -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
+override CFLAGS        = -Wall -Wextra $(OPTIMIZE) -std=c99 -mcpu=cortex-m3 -mthumb $(DBG) -DBUS_BAUDRATE=$(BUS_BAUDRATE)
 override LDFLAGS       = -Wl,-Map,$(PRG).map -nostartfiles -Tlinker.ld
 
 

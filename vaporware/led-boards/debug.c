@@ -51,6 +51,18 @@ void debug_int(unsigned int x, int min_width) {
 #endif
 }
 
+void debug_fixed(fixed_t x) {
+#ifndef NDEBUG
+	if (fixlt(x, FIXNUM(0))) {
+		console_write("-");
+		x = fixneg(x);
+	}
+	console_int(fix_int_part(x), 10, 0, ' ');
+	console_write(".");
+	console_int(fix_fract_part(x), 10, 0, ' ');
+#endif
+}
+
 // From http://forums.arm.com/index.php?/topic/13949-cycle-count-in-cortex-m3/
 // These registers are undocumented officially...
 volatile uint32_t * const DWT_CYCCNT  = (uint32_t*) 0xe0001004;

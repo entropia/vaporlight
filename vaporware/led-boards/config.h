@@ -5,6 +5,7 @@
 #include "stm_include/stm32/timer.h"
 
 #include "error.h"
+#include "fixedpoint.h"
 #include "pwm.h"
 
 /*
@@ -171,14 +172,14 @@ typedef struct {
 	// ( g ) = color_matrix * xy;
 	// ( b )
 	union {
-		float color_matrix[9];
-		char filler1[9 * sizeof(float)];
+		fixed_t color_matrix[9];
+		char filler1[9 * sizeof(fixed_t)];
 	};
 
 	// The luminosity of each channel at maximum PWM setting.
 	union {
-		float peak_Y[3];
-		char filler2[3 * sizeof(float)];
+		fixed_t peak_Y[3];
+		char filler2[3 * sizeof(fixed_t)];
 	};
 
 	// Index of the PWM channels for red, green and blue.

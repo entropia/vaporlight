@@ -6,6 +6,7 @@
 #include "config.h"
 #include "console.h"
 #include "error.h"
+#include "fixedpoint.h"
 #include "git_version.h"
 #include "pwm.h"
 #include "term.h"
@@ -216,7 +217,7 @@ static const char *VALUE_NAMES[] = {
 	"x (in 65536ths) = ",
 	"y (in 65536ths) = ",
 	"Y (integer part) = ",
-	"Y (fractional part to 5 places) = "
+	"Y (fractional part in 65536ths) = "
 };
 
 /*
@@ -233,28 +234,28 @@ static error_t run_calibrate_led(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	float matrix[9];
+	fixed_t matrix[9];
 
 	for (int c = 0; c < 3; c++) {
 		console_write(COLOR_NAMES[c]);
 		for (int v = 0; v < 2; v++) {
 			unsigned int input = console_ask_int(VALUE_NAMES[v], 10);
-			matrix[3 * v + c] = input / 65536.0f;
+			matrix[3 * v + c] = fixfract(input);
 		}
 
 		unsigned int Y_int = console_ask_int(VALUE_NAMES[2], 10);
 		unsigned int Y_frac = console_ask_int(VALUE_NAMES[3], 10);
 
-		float Y = Y_int + (Y_frac * 100000.0);
+		fixed_t Y = fixadd(fixnum(Y_int), fixfract(Y_frac));
 		config.led_infos[index].peak_Y[c] = Y;
 	}
 
 	// Fill in the homogenous coordinate entries
 	for (int i = 0; i < 3; i++) {
-		matrix[6 + i] = 1.0f;
+		matrix[6 + i] = FIXNUM(1.0);
 	}
 
-	float *out = config.led_infos[index].color_matrix;
+	fixed_t *out = config.led_infos[index].color_matrix;
 	invert_3x3(matrix, out);
 
 	return E_SUCCESS;
@@ -367,9 +368,8 @@ static error_t run_set_correction(unsigned int args[]) {
 	console_write(ENTER_MATRIX);
 
 	for (int i = 0; i < 9; i++) {
-		int input = console_ask_int("", 16);
-		float *f = (float*) &input;
-		info->color_matrix[i] = *f;
+		int input = console_ask_int("", 10);
+		info->color_matrix[i] = (fixed_t){ input };
 	}
 
 	return E_SUCCESS;
@@ -482,8 +482,7 @@ static error_t run_set_max_Y(unsigned int args[]) {
 
 	for (int i = 0; i < 3; i++) {
 		int input = console_ask_int("", 16);
-		float *f = (float*) &input;
-		info->peak_Y[i] = *f;
+		info->peak_Y[i] = (fixed_t){ input };
 	}
 
 	return E_SUCCESS;
@@ -722,8 +721,7 @@ LED  channel  correction matrix           Y_max
 			console_write("       ");
 
 			for (int i = 0; i < 3; i++) {
-				uint32_t *ptr = (uint32_t*) &info->color_matrix[3*c+i];
-				console_int_08x(*ptr);
+				debug_fixed(info.color_matrix[3*c+i]);
 				console_putchar(' ');
 			}
 			console_write("  ");
