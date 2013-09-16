@@ -275,7 +275,7 @@ static error_t run_echo(unsigned int args[]) {
 	console_write(BEGINNING_ECHO);
 	do {
 		console_getline(buf, 80);
-	} while (strncmp(buf, "q", 80));
+	} while (buf[0] == 'q' && buf[1] == '\0');
 
 	return E_SUCCESS;
 }
