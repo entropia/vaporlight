@@ -85,7 +85,7 @@ static error_t run_set_leds(uint8_t *args) {
 
 	if (options & OPT_CORRECTION) {
 		for (uint8_t l = 0; l < RGB_LED_COUNT; l++, i+=6) {
-			led_info_t *info = &config.led_infos[l];
+			led_info_t info = config.led_infos[l];
 
 			uint16_t x = (args[i+0] << 8) + args[i+1];
 			uint16_t y = (args[i+2] << 8) + args[i+3];
@@ -95,7 +95,7 @@ static error_t run_set_leds(uint8_t *args) {
 			color_correct(info, x, y, Y, rgb);
 
 			for (int c = 0; c < 3; c++) {
-				error_t error = pwm_set_brightness(info->channels[c], rgb[c]);
+				error_t error = pwm_set_brightness(info.channels[c], rgb[c]);
 				if (error) return error;
 			}
 		}

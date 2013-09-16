@@ -188,10 +188,9 @@ static error_t run_set_color(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	led_info_t *info = &config.led_infos[index];
+	led_info_t info = config.led_infos[index];
 
 	uint16_t rgb[3];
-
 	color_correct(info, x, y, Y, rgb);
 
 	console_write("Color correction: ");
@@ -200,7 +199,7 @@ static error_t run_set_color(unsigned int args[]) {
 	console_int_d(rgb[BLUE]); console_write(CRLF);
 
 	for(int i = 0; i < 3; i++) {
-		error_t error = pwm_set_brightness(info->channels[i], rgb[i]);
+		error_t error = pwm_set_brightness(info.channels[i], rgb[i]);
 		if (error) return error;
 	}
 
@@ -363,13 +362,11 @@ static error_t run_set_correction(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	led_info_t *info = &config.led_infos[led];
-
 	console_write(ENTER_MATRIX);
 
 	for (int i = 0; i < 9; i++) {
 		int input = console_ask_int("", 10);
-		info->color_matrix[i] = (fixed_t){ input };
+		config.led_infos[led].color_matrix[i] = (fixed_t){ input };
 	}
 
 	return E_SUCCESS;
@@ -399,9 +396,8 @@ static error_t run_set_pwm_channels(unsigned int args[]) {
 		}
 	}
 
-	led_info_t *info = &config.led_infos[led];
 	for(int i = 0; i < 3; i++) {
-		info->channels[i] = rgb[i];
+		config.led_infos[led].channels[i] = rgb[i];
 	}
 
 	return E_SUCCESS;
@@ -476,13 +472,11 @@ static error_t run_set_max_Y(unsigned int args[]) {
 		return E_ARG_FORMAT;
 	}
 
-	led_info_t *info = &config.led_infos[led];
-
 	console_write(ENTER_MAX_Y);
 
 	for (int i = 0; i < 3; i++) {
 		int input = console_ask_int("", 16);
-		info->peak_Y[i] = (fixed_t){ input };
+		config.led_infos[led].peak_Y[i] = (fixed_t){ input };
 	}
 
 	return E_SUCCESS;
@@ -707,7 +701,7 @@ LED  channel  correction matrix           Y_max
 
 	console_write(LED_SETTINGS_HEAD);
 	for (int l = 0; l < RGB_LED_COUNT; l++) {
-		led_info_t *info = &config.led_infos[l];
+		led_info_t info = config.led_infos[l];
 
 		for (int c = 0; c < 3; c++) {
 			if (c == 0) {
@@ -717,7 +711,7 @@ LED  channel  correction matrix           Y_max
 			}
 			console_write("  ");
 
-			console_int_2d(info->channels[c]);
+			console_int_2d(info.channels[c]);
 			console_write("       ");
 
 			for (int i = 0; i < 3; i++) {
@@ -726,7 +720,7 @@ LED  channel  correction matrix           Y_max
 			}
 			console_write("  ");
 
-			uint32_t *ptr = (uint32_t*) &info->peak_Y[c];
+			uint32_t *ptr = (uint32_t*) &info.peak_Y[c];
 			console_int_08x(*ptr);
 			console_write(CRLF);
 		}

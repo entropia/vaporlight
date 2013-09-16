@@ -88,8 +88,7 @@ uint8_t convert_channel_index(uint8_t c) {
 	} else {
 		uint8_t led = c / 3;
 		uint8_t channel = c % 3;
-		led_info_t *info = &config.led_infos[led];
-		return info->channels[channel];
+		return config.led_infos[led].channels[channel];
 	}
 }
 

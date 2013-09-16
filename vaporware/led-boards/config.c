@@ -292,9 +292,8 @@ int config_valid() {
 	uint8_t backup_channel = MODULE_LENGTH;
 
 	for (int l = 0; l < RGB_LED_COUNT; l++) {
-		led_info_t *info = &config.led_infos[l];
 		for (int c = 0; c < 3; c++) {
-			led_seen[info->channels[c]]++;
+			led_seen[config.led_infos[l].channels[c]]++;
 		}
 	}
 
