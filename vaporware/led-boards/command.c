@@ -31,8 +31,8 @@ typedef enum {
  */
 int command_length(char command_code) {
 	// The "set LEDs" commands have the format:
-	// address options (channels * MODULE_LENGTH)
-	// 1 byte  1 byte   2 bytes each
+	// | 1 byte  | 1 byte  | 2 bytes each               |
+	// | address | options | (channels * MODULE_LENGTH) |
 
 	// The "strobe" command stands for itself
 	if (command_code == CMD_STROBE) {
@@ -112,6 +112,7 @@ static error_t run_set_leds(uint8_t *args) {
 
 	return E_SUCCESS;
 }
+
 /*
  * Runs the command pointed to by 'command'.
  *
