@@ -36,7 +36,7 @@ void debug_write(const char *message, int length) {
  */
 void debug_hex(int x, int width) {
 #ifndef NDEBUG
-	console_int(x, 16, width, '0');
+	console_uint(x, 16, width, '0');
 #endif
 }
 
@@ -45,21 +45,21 @@ void debug_hex(int x, int width) {
  * debug USART. If the resulting string is shorter than min_width, it
  * is padded at the left with spaces.
  */
-void debug_int(unsigned int x, int min_width) {
+void debug_uint(unsigned int x, int min_width) {
 #ifndef NDEBUG
-	console_int(x, 10, min_width, ' ');
+	console_uint(x, 10, min_width, ' ');
+#endif
+}
+
+void debug_sint(unsigned int x, int min_width) {
+#ifndef NDEBUG
+	console_sint(x, 10, min_width, ' ');
 #endif
 }
 
 void debug_fixed(fixed_t x) {
 #ifndef NDEBUG
-	if (fixlt(x, FIXNUM(0))) {
-		console_write("-");
-		x = fixneg(x);
-	}
-	console_int(fix_int_part(x), 10, 0, ' ');
-	console_write(".");
-	console_int(fix_fract_part(x), 10, 0, ' ');
+	console_fixed(x, 10);
 #endif
 }
 

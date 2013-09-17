@@ -194,9 +194,9 @@ static error_t run_set_color(unsigned int args[]) {
 	color_correct(info, x, y, Y, rgb);
 
 	console_write("Color correction: ");
-	console_int_d(rgb[RED]); console_write(" ");
-	console_int_d(rgb[GREEN]); console_write(" ");
-	console_int_d(rgb[BLUE]); console_write(CRLF);
+	console_uint_d(rgb[RED]); console_write(" ");
+	console_uint_d(rgb[GREEN]); console_write(" ");
+	console_uint_d(rgb[BLUE]); console_write(CRLF);
 
 	for(int i = 0; i < 3; i++) {
 		error_t error = pwm_set_brightness(info.channels[i], rgb[i]);
@@ -682,7 +682,7 @@ LED  channel  correction matrix           Y_max
 	console_write(PROGRAM_ID);
 
 	console_write(MODULE_ADDRESS);
-	console_int_3d(config.my_address);
+	console_uint_3d(config.my_address);
 	if (config.my_address == 0xfd) {
 		console_write(IS_BROADCAST);
 	}
@@ -692,9 +692,9 @@ LED  channel  correction matrix           Y_max
 
 	for (int i = 0; i < HEAT_SENSOR_LEN; i++) {
 		console_write("   ");
-		console_int_2d(i);
+		console_uint_2d(i);
 		console_write("   ");
-		console_int_5d(config.heat_limit[i]);
+		console_uint_5d(config.heat_limit[i]);
 		console_write(CRLF);
 	}
 	console_write(CRLF);
@@ -705,23 +705,22 @@ LED  channel  correction matrix           Y_max
 
 		for (int c = 0; c < 3; c++) {
 			if (c == 0) {
-				console_int_3d(l);
+				console_uint_3d(l);
 			} else {
 				console_write("   ");
 			}
 			console_write("  ");
 
-			console_int_2d(info.channels[c]);
+			console_uint_2d(info.channels[c]);
 			console_write("       ");
 
 			for (int i = 0; i < 3; i++) {
-				debug_fixed(info.color_matrix[3*c+i]);
+				console_fixed(info.color_matrix[3*c+i], 10);
 				console_putchar(' ');
 			}
 			console_write("  ");
 
-			uint32_t *ptr = (uint32_t*) &info.peak_Y[c];
-			console_int_08x(*ptr);
+			console_fixed(info.peak_Y[c], 10);
 			console_write(CRLF);
 		}
 		console_write(CRLF);
@@ -782,7 +781,6 @@ static error_t parse_args(char *line, unsigned int *args, int arg_length) {
 	for (int arg = 0; arg < arg_length; arg++) {
 		if (line[pos] == '\0') {
 			// The line has ended before all args could be parsed.
-			console_int_d(arg);
 			return E_MISSING_ARGS;
 		}
 

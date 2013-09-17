@@ -303,7 +303,7 @@ int config_valid() {
 				backup_channel = i;
 			} else {
 				console_write(CHANNEL_ASSIGNMENT_IS_INVALID);
-				console_int_d(i);
+				console_uint_d(i);
 				console_write(CRLF);
 				valid = 0;
 			}

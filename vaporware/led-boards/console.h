@@ -8,6 +8,7 @@
  */
 
 #include "error.h"
+#include "fixedpoint.h"
 #include "command.h"
 
 /*
@@ -40,20 +41,41 @@ void console_write_raw(const char *message, unsigned length);
  * character. Abbreviating macros are available, following the format
  * conventions of printf.
  */
-void console_int(unsigned value, unsigned base, int min_width, char padding);
+void console_uint(unsigned value, unsigned base, int min_width, char padding);
 
-#define console_int_d(value)   console_int(value, 10, 0, ' ')
-#define console_int_0d(value)  console_int(value, 10, 0, '0')
-#define console_int_2d(value)  console_int(value, 10, 2, ' ')
-#define console_int_3d(value)  console_int(value, 10, 3, ' ')
-#define console_int_4d(value)  console_int(value, 10, 4, ' ')
-#define console_int_5d(value)  console_int(value, 10, 5, ' ')
-#define console_int_x(value)   console_int(value, 16, 0, ' ')
-#define console_int_0x(value)  console_int(value, 16, 0, '0')
-#define console_int_01x(value) console_int(value, 16, 1, '0')
-#define console_int_02x(value) console_int(value, 16, 2, '0')
-#define console_int_04x(value) console_int(value, 16, 4, '0')
-#define console_int_08x(value) console_int(value, 16, 8, '0')
+#define console_uint_d(value)   console_uint(value, 10, 0, ' ')
+#define console_uint_0d(value)  console_uint(value, 10, 0, '0')
+#define console_uint_2d(value)  console_uint(value, 10, 2, ' ')
+#define console_uint_3d(value)  console_uint(value, 10, 3, ' ')
+#define console_uint_4d(value)  console_uint(value, 10, 4, ' ')
+#define console_uint_5d(value)  console_uint(value, 10, 5, ' ')
+#define console_uint_x(value)   console_uint(value, 16, 0, ' ')
+#define console_uint_0x(value)  console_uint(value, 16, 0, '0')
+#define console_uint_01x(value) console_uint(value, 16, 1, '0')
+#define console_uint_02x(value) console_uint(value, 16, 2, '0')
+#define console_uint_04x(value) console_uint(value, 16, 4, '0')
+#define console_uint_08x(value) console_uint(value, 16, 8, '0')
+
+void console_sint(int value, unsigned base, int min_width, char padding);
+
+#define console_sint_d(value)   console_sint(value, 10, 0, ' ')
+#define console_sint_0d(value)  console_sint(value, 10, 0, '0')
+#define console_sint_2d(value)  console_sint(value, 10, 2, ' ')
+#define console_sint_3d(value)  console_sint(value, 10, 3, ' ')
+#define console_sint_4d(value)  console_sint(value, 10, 4, ' ')
+#define console_sint_5d(value)  console_sint(value, 10, 5, ' ')
+#define console_sint_x(value)   console_sint(value, 16, 0, ' ')
+#define console_sint_0x(value)  console_sint(value, 16, 0, '0')
+#define console_sint_01x(value) console_sint(value, 16, 1, '0')
+#define console_sint_02x(value) console_sint(value, 16, 2, '0')
+#define console_sint_04x(value) console_sint(value, 16, 4, '0')
+#define console_sint_08x(value) console_sint(value, 16, 8, '0')
+
+/*
+ * Prints a fixed-point number to the console, formatting it
+ * in the given base.
+ */
+void console_fixed(fixed_t value, unsigned base);
 
 /*
  * Returns the next character received on the console.

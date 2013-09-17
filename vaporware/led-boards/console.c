@@ -5,6 +5,8 @@
 
 #include "console.h"
 
+#include <limits.h>
+
 #include "config.h"
 #include "console_prompt.h"
 #include "error.h"
@@ -48,12 +50,12 @@ void console_write_raw(const char *message, unsigned length) {
 // console_write is a macro defined in console.h
 
 /*
- * Prints an integer to the console, formatting it in the given base
- * and padding it to the given minimum width with the given padding
- * character. Abbreviating macros are available, following the format
- * conventions of printf.
+ * Prints an unsigned or signed integer to the console, formatting it
+ * in the given base and padding it to the given minimum width with
+ * the given padding character. Abbreviating macros are available,
+ * following the format conventions of printf.
  */
-void console_int(unsigned value, unsigned base, int min_width, char padding) {
+void console_uint(unsigned value, unsigned base, int min_width, char padding) {
 #define INT_WIDTH 32
 
 	char buf[INT_WIDTH]; // Enough for 32 bit integers in binary.
@@ -77,6 +79,52 @@ void console_int(unsigned value, unsigned base, int min_width, char padding) {
 	}
 	for (int i = pos; i < INT_WIDTH; i++) {
 		console_putchar(buf[i]);
+	}
+}
+
+void console_sint(int value, unsigned base, int min_width, char padding) {
+	if (value == INT_MIN) {
+		for (unsigned i = 0; i < min_width - strlen("INT_MIN"); i++) {
+			console_putchar(padding);
+		}
+		console_write("INT_MIN");
+		return;
+	}
+
+	if (value < 0) {
+		console_putchar('-');
+		value = -value;
+		if (min_width > 0) {
+			min_width--;
+		}
+	}
+	console_uint((unsigned)value, base, min_width, padding);
+}
+
+/*
+ * Prints a fixed-point number to the console, formatting it
+ * in the given base.
+ */
+void console_fixed(fixed_t value, unsigned base) {
+	if (fixlt(value, FIXNUM(0))) {
+		console_putchar('-');
+		value = fixneg(value);
+	}
+	int int_part = fix_int_part(value);
+	fixed_t rest = fixfract(fix_fract_part(value));
+	fixed_t fixbase = fixnum(base);
+
+	console_sint(int_part, base, 0, ' ');
+
+	if (fixne(rest, FIXNUM(0.0))) {
+		console_write(".");
+	}
+
+	while (fixne(rest, FIXNUM(0.0))) {
+		rest = fixmul(rest, fixbase);
+		int int_rest = fix_int_part(rest);
+		console_sint(int_rest, base, 0, ' ');
+		rest = fixfract(fix_fract_part(rest));
 	}
 }
 
@@ -292,7 +340,7 @@ error_t parse_int(char *line, int *pos, unsigned int *target, int base) {
 		return E_SUCCESS;
 	} else {
 		console_write("ARG_FORMAT ");
-		console_int_02x(line[p]);
+		console_uint_02x(line[p]);
 		return E_ARG_FORMAT;
 	}
 }
