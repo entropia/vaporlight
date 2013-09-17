@@ -65,11 +65,15 @@ void color_correct(led_info_t info,
 	// color at the requested luminosity it not possible, it will
 	// be reproduced darker.
 	fixed_t total_Y = dot(rgb_ratio, info.peak_Y);
-	fixed_t scale = fixmin(fixmin(fixmin(fixdiv(fixnum(Y), total_Y),
-					     fixdiv(FIXNUM(1.0), rgb_ratio[0])),
-				      fixdiv(FIXNUM(1.0), rgb_ratio[1])),
-			       fixdiv(FIXNUM(1.0), rgb_ratio[2]));
 
+	fixed_t scale = fixdiv(fixnum(Y), total_Y);
+
+	for (int i = 0; i < 2; i++) {
+		if (fixne(rgb_ratio[i], FIXNUM(0.0))) {
+			scale = fixmin(scale,
+				       fixdiv(FIXNUM(1.0), rgb_ratio[i]));
+		}
+	}
 
 	for (int i = 0; i < 3; i++) {
 		rgb_ratio[i] = fixmul(rgb_ratio[i], scale);
