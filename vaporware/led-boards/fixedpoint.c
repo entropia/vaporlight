@@ -1,5 +1,7 @@
 #include "fixedpoint.h"
 
+#include "error.h"
+
 #define MKFIX(x) (fixed_t) { x };
 
 fixed_t fixnum(int16_t n) {
@@ -42,6 +44,9 @@ fixed_t fixmul(fixed_t f, fixed_t g) {
 
 fixed_t fixdiv(fixed_t f, fixed_t g) {
 	int64_t f64 = (int64_t) f.v;
+	if (fixeq(g, FIXNUM(0.0))) {
+		error(ER_BUG, STR_WITH_LEN("Fixed-point division by zero"), EA_PANIC);
+	}
 	return MKFIX((f64 << FRAC_BITS) / g.v);
 }
 
