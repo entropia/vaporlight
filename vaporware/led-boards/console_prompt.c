@@ -220,7 +220,7 @@ static error_t run_echo(unsigned int args[]) {
 	do {
 		console_getline(buf, 80);
 	} while (strncmp(buf, "q", 80));
-	
+
 	return E_SUCCESS;
 }
 
@@ -242,7 +242,7 @@ static error_t run_paste_file(unsigned int args[]) {
 
 	return E_SUCCESS;
 }
-	
+
 /*
  * Runs the "set gamma table" command.
  *
@@ -391,7 +391,7 @@ static error_t run_quit(unsigned int args[]) {
  * This function does not return.
  */
 static error_t run_reset(unsigned int args[]) {
-	SCB_AIRCR |= SCB_AIRCR_SYSRESETREQ;
+	SCB_AIRCR = SCB_AIRCR_VECTKEY | SCB_AIRCR_SYSRESETREQ;
 
 	return E_SUCCESS;
 }
