@@ -1,8 +1,8 @@
 name := "de.entropia.vapor.daemon"
 
-version := "0.0.1"
+version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
 resolvers ++= Seq(
     "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
