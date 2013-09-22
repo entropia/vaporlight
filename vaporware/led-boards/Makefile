@@ -16,8 +16,8 @@ LIBS           =
 #	NDEBUG
 # Simplifications for debugging
 # 	SHORT_LOOPS, OMIT_HEAT_CHECK
-# Cycle counting:
-# 	COUNT_USART_ISR
+# Cycle counting (only activate one):
+# 	COUNT_USART_ISR, COUNT_SET_LEDS
 # Additionaly sanity checks in usart1.c
 #       USART1_CHECKS
 DBG = -DOMIT_HEAT_CHECK -DTRACE_ERRORS -DUSART1_CHECKS

@@ -77,6 +77,9 @@ static error_t run_set_leds(uint8_t *args) {
 #ifdef TRACE_COMMANDS
 	console_write("set");
 #endif
+#ifdef COUNT_SET_LEDS
+	cycle_start();
+#endif
 
 	error_t error;
 	int i = 0;
@@ -119,7 +122,12 @@ static error_t run_set_leds(uint8_t *args) {
 			if (error) return error;
 		}
 	}
-
+#ifdef COUNT_SET_LEDS
+	int cycles = cycle_get();
+	console_write("Set LED cycles: ");
+	console_uint_d(cycles);
+	console_write(CRLF);
+#endif
 #ifdef TRACE_COMMANDS
 	console_write("Done" CRLF);
 #endif
