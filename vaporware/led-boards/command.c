@@ -2,9 +2,11 @@
 
 #include "color.h"
 #include "config.h"
+#include "console.h"
 #include "debug.h"
 #include "pwm.h"
 #include "usart2.h"
+#include "term.h"
 
 /*
  * The commands that may arrive on the USART.
@@ -73,9 +75,7 @@ void command_init() {
  */
 static error_t run_set_leds(uint8_t *args) {
 #ifdef TRACE_COMMANDS
-	debug_string("set");
-	debug_putchar(length);
-	debug_write((char*) args, 2 * MODULE_LENGTH + 2);
+	console_write("set");
 #endif
 
 	error_t error;
@@ -94,6 +94,16 @@ static error_t run_set_leds(uint8_t *args) {
 			uint16_t rgb[3];
 			color_correct(info, x, y, Y, rgb);
 
+#ifdef TRACE_COMMANDS
+			console_uint_d(l); console_write(" ");
+		        console_uint_d(x); console_write(" ");
+		        console_uint_d(y); console_write(" ");
+		        console_uint_d(Y); console_write(" ");
+		        console_uint_d(rgb[0]); console_write(" ");
+		        console_uint_d(rgb[1]); console_write(" ");
+		        console_uint_d(rgb[2]); console_write(" ");
+#endif
+
 			for (int c = 0; c < 3; c++) {
 				error_t error = pwm_set_brightness(info.channels[c], rgb[c]);
 				if (error) return error;
@@ -110,6 +120,9 @@ static error_t run_set_leds(uint8_t *args) {
 		}
 	}
 
+#ifdef TRACE_COMMANDS
+	console_write("Done" CRLF);
+#endif
 	return E_SUCCESS;
 }
 
@@ -119,15 +132,14 @@ static error_t run_set_leds(uint8_t *args) {
  * Returns an error/success code.
  */
 error_t run_command(uint8_t *command) {
-#ifdef TRACE_COMMANDS
-	debug_putchar(command[0]);
-#endif
-
 	if (command[0] == config.my_address ||
 	    command[0] == CMD_BROADCAST) {
 		// The first byte is the addresss. Drop it.
 		return run_set_leds(command + 1);
 	} else if (command[0] == CMD_STROBE) {
+#ifdef TRACE_COMMANDS
+		console_write("!");
+#endif
 		return pwm_send_frame();
 	}
 
