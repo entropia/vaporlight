@@ -10,6 +10,7 @@ at https://entropia.de/Vaporlight.
 Where to find what
 ------------------
 
+/HACKING                       Describes some internals
 /hardware                      Schematics and PCB layouts (Eagle)
 /vaporware/led-boards          Firmware for the LED modules (C)
 /config                        OpenOCD config files
