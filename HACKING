@@ -1,3 +1,7 @@
+Protocols
+=========
+
+
 Network protocol
 ----------------
 
@@ -36,4 +40,47 @@ a strobe command, at which point they take
 effect all at once::
 
   <strobe> ::= 0xFF
+
+
+Bus protocol
+------------
+
+The following describes the protocol the router
+uses to communicate with the LED modules.
+
+The router acts as the bus master. It is the only device
+that can send data on the bus. The LED modules may only receive.
+The bus speed is 500000 baud (slower bus speeds may be used;
+however that requires a special firmware for the LED modules).
+
+The router sends whole frames.
+The byte 0x54 is called the escape mark and 0x55 the stark mark.
+To escape a payload, substitute 0x54 by 0x54 0x00 and 0x55 by 0x54 0x01.
+Each frame consists of the start mark and an escaped payload.
+
+  <frame> ::= 0x55 escape(<frame-payload>)
+  <frame-payload> ::= <address> <command> | <strobe>
+  <command> ::= <set-raw> | <set-xyY> | <set-conf> | <set-addr>
+
+The set-raw command can be used to set the values for the PWM output
+channels directly. Currently, all LED modules have 16 channels.
+
+  <set-raw> ::= 0x00 ( <int16> ){16}
+
+Alternatively, the desired colors can be expressed using the xyY color
+space. Note that this requires properly calibrated LED modules.
+
+  <set-xyy> ::= 0x01 ( <xyY> ){5} 0x00
+  <xyY> ::= <x: int16> <y: int16> <Y: int16>
+
+Updates only take effect when a strobe frame is sent:
+
+  <strobe> ::= 0xfe
+
+All 16-bit numbers are big endian::
+
+  <int16> ::= <high byte> <low byte>
+
+The set-conf and set-addr commands are currently
+unsupported and unspecified.
 
