@@ -35,6 +35,10 @@ trait Color {
   /** Returns RGBA as bytes (ie, with 8 bit precision) */
   def as8BitRgbaByteVector: Vector[Byte] =
     Vector((r >> 8).toByte, (g >> 8).toByte, (b >> 8).toByte, (a >> 8).toByte)
+
+  /** Returns RGBA as sequence of bytes (16 bit precision, big endian) */
+  def asRrGgBbAaByteVector: Vector[Byte] =
+    Vector((r >> 8).toByte, (r & 0xff).toByte, (g >> 8).toByte, (g & 0xff).toByte, (b >> 8).toByte, (b & 0xff).toByte, (a >> 8).toByte, (a & 0xff).toByte)
 }
 
 object Color {

@@ -18,6 +18,7 @@ object Message {
     case AuthMessage.opcode => AuthMessage
     case LowPrecisionSetMessage.opcode => LowPrecisionSetMessage
     case StrobeMessage.opcode => StrobeMessage
+    case HighPrecisionSetMessage.opcode => HighPrecisionSetMessage
     case _ => throw new ProtocolViolation("invalid opcode: %02X".format(opcode))
   }
 }
@@ -75,6 +76,27 @@ object LowPrecisionSetMessage extends MessageType {
     require(payload.size == payloadLength)
     val led = (payload(0).toUnsignedInt << 8) + payload(1).toUnsignedInt
     val color = RgbColor.fromRgbaByteSeq(payload.slice(2, payload.size))
+    new LowPrecisionSetMessage(led, color.get)
+  }
+}
+
+case class HighPrecisionSetMessage(val led: Int, color: Color) extends Message {
+  require(0 <= led && led <= 65535)
+
+  def serialize = Vector(
+    LowPrecisionSetMessage.opcode,
+    ((led & 0xff00) >> 8).toByte,
+    (led & 0xff).toByte) ++ color.asRrGgBbAaByteVector
+}
+
+object HighPrecisionSetMessage extends MessageType {
+  val opcode = 0x03.toByte
+  val payloadLength = 10
+
+  def parse(payload: Seq[Byte]) = {
+    require(payload.size == payloadLength)
+    val led = (payload(0).toUnsignedInt << 8) + payload(1).toUnsignedInt
+    val color = RgbColor.fromRrGgBbAaByteSeq(payload.slice(2, payload.size))
     new LowPrecisionSetMessage(led, color.get)
   }
 }
