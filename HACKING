@@ -13,7 +13,10 @@ already be a library for your language!
 Open a TCP connection to the router
 (default port: 7534) and send commands::
 
-  <command> ::= <auth> | <set-led> | <strobe>
+  <command> ::= <auth>
+              | <set-led-8>
+              | <set-led-16>
+              | <strobe>
 
 All commands consist of a 1-byte opcode and a payload.
 
@@ -26,14 +29,21 @@ config which determines rendering order::
   <auth> ::= 0x02 <token>
   <token> ::= <byte>{16}
 
-Now, you can set LEDs to colors. The lowest
-intensity is 0x00, the highest intensity 0xFF.
-For the alpha channel, 0x00 means transparent
-while 0xFF means fully opaque::
+Now, you can set LEDs to colors.
 
-  <set-led> ::= 0x01 <led-id> <rgba>
-  <led-id> ::= <high byte> <low byte>
-  <rgba> ::= <r byte> <g byte> <b byte> <a byte>
+Currently, you can only set desired raw PWM values. Values range
+from 0x0000 (lowest or, for the alpha channel, transparent)
+to 0xFFFF (highest or opaque)::
+
+  <set-led-16> ::= 0x03 <led-id:int16> <rgba-16>
+  <rgba-16> ::= <r:int16> <g:int16> <b:int16> <a:int16>
+  <int16> ::= <high:byte> <low:byte>
+
+For historicaly reasons, there is also a legacy
+low-precision version of the set-led command::
+
+  <set-led-8> ::= 0x01 <led-id:byte> <rgba>
+  <rgba-8> ::= <r:byte> <g:byte> <b:byte> <a:byte>
 
 Changes don't take effect until you issue
 a strobe command, at which point they take
@@ -77,7 +87,7 @@ Updates only take effect when a strobe frame is sent:
 
   <strobe> ::= 0xfe
 
-All 16-bit numbers are big endian::
+Again, all 16-bit numbers are big endian::
 
   <int16> ::= <high byte> <low byte>
 
