@@ -18,6 +18,7 @@ class FilelikeController(object):
         self._filelike.sendall(command.to_str())
 
     def set_rgb(self, led, rgb, a=255):
+        """set colors with 8 bit precision. deprecated."""
         self._send(SetLedCommand(led, (rgb[0], rgb[1], rgb[2], a)))
 
     def set_rgb_hi(self, led, rgb, a=65535):
@@ -25,6 +26,7 @@ class FilelikeController(object):
         self._send(HighResSetLedCommand(led, (rgb[0], rgb[1], rgb[2], a)))
 
     def set_rgba(self, led, rgba):
+        """set colors with 8 bit precision. deprecated."""
         self._send(SetLedCommand(led, rgba))
 
     def set_rgba_hi(self, led, rgba):
@@ -36,12 +38,15 @@ class FilelikeController(object):
         self.set_rgb(led, rgb, a)
 
     def strobe(self):
+        """make updates take effect"""
         self._send(StrobeCommand())
 
     def close(self):
+        """close the connection, cleanly removing our LED state from the device"""
         self._filelike.close()
 
     def done(self):
+        """enter an infinite loop, keeping sockets open"""
         while True: # to keep socket open
             time.sleep(1)
 
@@ -236,6 +241,12 @@ class ProtocolError(Exception):
 
 
 def main(func):
+    """
+    Generic main function.
+
+    Handles command line parameters.
+    Returns a connected, ready-to-use SocketController object.
+    """
     parser = argparse.ArgumentParser(description='Some vaporlight animation.')
     parser.add_argument('--host', type=str, default="localhost")
     parser.add_argument('--port', type=int, default=7534)
