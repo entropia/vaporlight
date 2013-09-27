@@ -20,8 +20,16 @@ class FilelikeController(object):
     def set_rgb(self, led, rgb, a=255):
         self._send(SetLedCommand(led, (rgb[0], rgb[1], rgb[2], a)))
 
+    def set_rgb_hi(self, led, rgb, a=65535):
+        """set colors with 16 bit precision."""
+        self._send(HighResSetLedCommand(led, (rgb[0], rgb[1], rgb[2], a)))
+
     def set_rgba(self, led, rgba):
         self._send(SetLedCommand(led, rgba))
+
+    def set_rgba_hi(self, led, rgba):
+        """set colors with 16 bit precision."""
+        self._send(HighResSetLedCommand(led, rgba))
 
     def set_rgb_a(self, led, rgb, a=255):
         """deprecated. for backwards compatibility only."""
@@ -192,6 +200,35 @@ class AuthenticateCommand(object):
     @property
     def token(self):
         return self._token
+
+
+class HighResSetLedCommand(object):
+    opcode = "\x03"
+
+    def __init__(self, led, color):
+        self.led = led
+        self._color = color
+
+    def to_str(self):
+        return "".join((self.opcode,
+            chr(self.led >> 8),
+            chr(self.led & 255),
+            chr(self._color[0] >> 8),
+            chr(self._color[0] & 255),
+            chr(self._color[1] >> 8),
+            chr(self._color[1] & 255),
+            chr(self._color[2] >> 8),
+            chr(self._color[2] & 255),
+            chr(self._color[3] >> 8),
+            chr(self._color[3] & 255)))
+
+    @property
+    def rgb(self):
+        return self._color[:3]
+
+    @property
+    def rgba(self):
+        return self._color
 
 
 class ProtocolError(Exception):
