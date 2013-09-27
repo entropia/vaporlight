@@ -1,7 +1,8 @@
 package de.entropia.vapor.hardware
 
-import de.entropia.vapor.util.{Green, Red, Blue, Color, RgbChannel}
+import de.entropia.vapor.util.Color
 import de.entropia.vapor.daemon.config.Settings
+import de.entropia.vapor.daemon.util.{BlueChannel, RgbChannel, GreenChannel, RedChannel}
 
 
 /**
@@ -15,16 +16,16 @@ import de.entropia.vapor.daemon.config.Settings
 class Mapping(val settings: Settings, val buffer: Buffer) {
 
   def set(led: Int, color: Color) {
-    set(led, color, Red)
-    set(led, color, Green)
-    set(led, color, Blue)
+    set(led, color, RedChannel)
+    set(led, color, GreenChannel)
+    set(led, color, BlueChannel)
   }
 
   def set(led: Int, color: Color, channel: RgbChannel) {
     val maybeModuleAndPosition = settings.channels.get((led, channel))
     if (maybeModuleAndPosition.isDefined) {
       val (module, position) = maybeModuleAndPosition.get
-      buffer.set(module, position, channel.extract(color).toByte)
+      buffer.set(module, position, channel.extract(color))
     }
   }
 

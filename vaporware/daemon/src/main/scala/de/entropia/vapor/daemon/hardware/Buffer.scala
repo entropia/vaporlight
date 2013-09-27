@@ -13,13 +13,13 @@ import com.typesafe.scalalogging.slf4j.Logging
  * LED states change, update messages can still be generated.
  */
 class Buffer(val settings: Settings, val encoder: Encoder) extends Logging {
-  val moduleLedStates = mutable.Map[Byte, mutable.Seq[Byte]]()
+  val moduleLedStates = mutable.Map[Byte, mutable.Seq[Int]]()
   val dirtyModules = mutable.Set[Byte]()
 
-  def set(module: Byte, position: Int, value: Byte) {
+  def set(module: Byte, position: Int, value: Int) {
     if (!moduleLedStates.contains(module)) {
       moduleLedStates(module) = Array.fill(settings.channelCounts(module)) {
-        0.toByte
+        0
       }
     }
     moduleLedStates(module)(position) = value

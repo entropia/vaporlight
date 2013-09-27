@@ -1,6 +1,6 @@
 package de.entropia.vapor.server
 
-import de.entropia.vapor.util.Color
+import de.entropia.vapor.util.{RgbColor, Color}
 import de.entropia.vapor.util.UnsignedByte.Byte2UnsignedByte
 
 
@@ -64,7 +64,7 @@ case class SetMessage(val led: Int, color: Color) extends Message {
   def serialize = Vector(
     SetMessage.opcode,
     ((led & 0xff00) >> 8).toByte,
-    (led & 0xff).toByte) ++ color.toByteVector
+    (led & 0xff).toByte) ++ color.as8BitRgbaByteVector
 }
 
 object SetMessage extends MessageType {
@@ -74,7 +74,7 @@ object SetMessage extends MessageType {
   def parse(payload: Seq[Byte]) = {
     require(payload.size == payloadLength)
     val led = (payload(0).toUnsignedInt << 8) + payload(1).toUnsignedInt
-    val color = Color.fromByteSeq(payload.slice(2, payload.size))
-    new SetMessage(led, color)
+    val color = RgbColor.fromRgbaByteSeq(payload.slice(2, payload.size))
+    new SetMessage(led, color.get)
   }
 }

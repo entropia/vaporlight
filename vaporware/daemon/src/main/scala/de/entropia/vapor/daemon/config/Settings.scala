@@ -3,10 +3,10 @@ package de.entropia.vapor.daemon.config
 import com.typesafe.config.{Config, ConfigFactory}
 import RichConfig.Config2RichConfig
 import Token.TokenId
-import de.entropia.vapor.util.{Blue, Green, Red, RgbChannel}
 import scala.collection.mutable
 import collection.JavaConversions._
 import collection.JavaConverters._
+import de.entropia.vapor.daemon.util.{BlueChannel, GreenChannel, RedChannel, RgbChannel}
 
 class Settings(config: Config) {
   val device = config.getDeviceSettings("hardware.device")
@@ -55,11 +55,11 @@ class RichConfig(val config: Config) {
     val result = mutable.Map[(Int, RgbChannel), (Byte, Int)]()
     for ((hiChannel, loChannels) <- getMap[Int, java.util.List[java.util.List[Int]]](key)(_.toInt, (k, v) => v.asInstanceOf[java.util.List[java.util.List[Int]]])) {
       if (!loChannels(0).isEmpty)
-        result.put((hiChannel, Red), (loChannels(0)(0).toByte, loChannels(0)(1)))
+        result.put((hiChannel, RedChannel), (loChannels(0)(0).toByte, loChannels(0)(1)))
       if (!loChannels(1).isEmpty)
-        result.put((hiChannel, Green), (loChannels(1)(0).toByte, loChannels(1)(1)))
+        result.put((hiChannel, GreenChannel), (loChannels(1)(0).toByte, loChannels(1)(1)))
       if (!loChannels(2).isEmpty)
-        result.put((hiChannel, Blue), (loChannels(2)(0).toByte, loChannels(2)(1)))
+        result.put((hiChannel, BlueChannel), (loChannels(2)(0).toByte, loChannels(2)(1)))
     }
     result.toMap
   }

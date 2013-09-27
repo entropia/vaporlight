@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
 class ColorSuite extends FunSuite {
 
   test("swizzling") {
-    val testee = Color(130, 140, 150, 160)
+    val testee = RgbColor(130, 140, 150, 160)
     assert((130) === testee.r)
     assert((140) === testee.g)
     assert((150) === testee.b)
@@ -18,22 +18,22 @@ class ColorSuite extends FunSuite {
   }
 
   test("opaque version of color") {
-    assert(Color(10, 20, 30, 255) === Color(10, 20, 30, 40).opaque)
+    assert(RgbColor(10, 20, 30, 255) === RgbColor.from8BitRgba(10, 20, 30, 40).opaque)
   }
 
   test("serialization") {
-    assert(Vector(130.toByte, 140.toByte, 150.toByte, 160.toByte) === Color(130, 140, 150, 160).toByteVector)
+    assert(Vector(130.toByte, 140.toByte, 150.toByte, 160.toByte) === RgbColor.from8BitRgba(130, 140, 150, 160).as8BitRgbaByteVector)
   }
 
   test("blending") {
-    val fg = Color(0, 255, 100, 128)
-    val bg = Color(0, 0, 0, 0)
-    assert(Color(0, 128, 50, 255) === fg.blendOver(bg))
+    val fg = RgbColor.from8BitRgba(0, 255, 100, 128)
+    val bg = RgbColor.from8BitRgba(0, 0, 0, 0)
+    assert(RgbColor.from8BitRgba(0, 128, 50, 255) === fg.blendOver(bg))
   }
 
   test("blending of a transparent color over another color") {
-    val fg = Color(100, 100, 100, 0)
-    val bg = Color(222, 222, 222, 0)
-    assert(Color(222, 222, 222, 255) === fg.blendOver(bg))
+    val fg = RgbColor.from8BitRgba(100, 100, 100, 0)
+    val bg = RgbColor.from8BitRgba(222, 222, 222, 0)
+    assert(RgbColor.from8BitRgba(222, 222, 222, 255) === fg.blendOver(bg))
   }
 }
