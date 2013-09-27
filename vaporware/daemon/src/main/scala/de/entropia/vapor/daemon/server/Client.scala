@@ -14,7 +14,7 @@ class Client(val settings: Settings, val mixer: Mixer, val manager: Manager) ext
 
   def dispatch(message: Message) = message match {
     case AuthMessage(bytes) => auth(bytes)
-    case SetMessage(led, color) => setLed(led, color)
+    case LowPrecisionSetMessage(led, color) => setLed(led, color)
     case StrobeMessage() => strobe()
   }
 

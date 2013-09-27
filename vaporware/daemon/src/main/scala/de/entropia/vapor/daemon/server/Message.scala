@@ -16,7 +16,7 @@ sealed abstract class Message() {
 object Message {
   def lookup(opcode: Byte): MessageType = opcode match {
     case AuthMessage.opcode => AuthMessage
-    case SetMessage.opcode => SetMessage
+    case LowPrecisionSetMessage.opcode => LowPrecisionSetMessage
     case StrobeMessage.opcode => StrobeMessage
     case _ => throw new ProtocolViolation("invalid opcode: %02X".format(opcode))
   }
@@ -58,16 +58,16 @@ object AuthMessage extends MessageType {
   }
 }
 
-case class SetMessage(val led: Int, color: Color) extends Message {
+case class LowPrecisionSetMessage(val led: Int, color: Color) extends Message {
   require(0 <= led && led <= 65535)
 
   def serialize = Vector(
-    SetMessage.opcode,
+    LowPrecisionSetMessage.opcode,
     ((led & 0xff00) >> 8).toByte,
     (led & 0xff).toByte) ++ color.as8BitRgbaByteVector
 }
 
-object SetMessage extends MessageType {
+object LowPrecisionSetMessage extends MessageType {
   val opcode = 0x01.toByte
   val payloadLength = 6
 
@@ -75,6 +75,6 @@ object SetMessage extends MessageType {
     require(payload.size == payloadLength)
     val led = (payload(0).toUnsignedInt << 8) + payload(1).toUnsignedInt
     val color = RgbColor.fromRgbaByteSeq(payload.slice(2, payload.size))
-    new SetMessage(led, color.get)
+    new LowPrecisionSetMessage(led, color.get)
   }
 }
