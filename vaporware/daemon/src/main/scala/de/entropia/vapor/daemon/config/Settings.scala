@@ -94,6 +94,9 @@ object RichConfig {
 }
 
 case class Token(val id: List[Byte], val priority: Int, val persistent: Boolean) {
+
+  def shortId =
+    new String(id.toArray).reverse.dropWhile(_ == '\0').reverse
 }
 
 object Token {

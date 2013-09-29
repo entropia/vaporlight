@@ -17,7 +17,8 @@ class Application(settings: Settings) extends Logging {
   val server = new Server(settings, mixer, manager)
   val webserver = new Webserver(settings,
     new Dimmer(settings, mixer),
-    new Backlight(settings, mixer))
+    new Backlight(settings, mixer),
+    server.status)
 
   def start() {
     logger.info("starting up")

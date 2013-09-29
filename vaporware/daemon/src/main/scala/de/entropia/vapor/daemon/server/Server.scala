@@ -12,6 +12,7 @@ import de.entropia.vapor.mixer.Mixer
 import de.entropia.vapor.daemon.config.Settings
 import de.entropia.vapor.daemon.mixer.Manager
 import com.typesafe.scalalogging.slf4j.Logging
+import de.entropia.vapor.daemon.server.ServerStatus
 
 
 sealed abstract class ServerMsg()
@@ -31,12 +32,13 @@ class Server(val settings: Settings, val mixer: Mixer, val manager: Manager) {
   var factory = new NioServerSocketChannelFactory(
     Executors.newCachedThreadPool,
     Executors.newCachedThreadPool)
+  val status = new ServerStatus()
 
   def start() {
-     settings.lowlevelServerInterface match {
-       case Some((host, port)) => start(host, port)
-       case _ => // pass
-     }
+    settings.lowlevelServerInterface match {
+      case Some((host, port)) => start(host, port)
+      case _ => // pass
+    }
   }
 
   def start(host: String, port: Int) {
@@ -47,7 +49,7 @@ class Server(val settings: Settings, val mixer: Mixer, val manager: Manager) {
     bootstrap.setPipelineFactory(new ChannelPipelineFactory {
       def getPipeline = Channels.pipeline(
         new VaporlightFrameDecoder(),
-        new VaporlightChannelHandler(channels, clients, settings, mixer, manager))
+        new VaporlightChannelHandler(channels, clients, settings, mixer, manager, status))
     })
     channels.add(bootstrap.bind(new InetSocketAddress(host, port)))
   }
@@ -84,7 +86,7 @@ class VaporlightFrameDecoder() extends FrameDecoder with Logging {
 /**
  * Handles a single connection.
  */
-class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLocal[Client], val settings: Settings, val mixer: Mixer, val manager: Manager) extends SimpleChannelUpstreamHandler with Logging {
+class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLocal[Client], val settings: Settings, val mixer: Mixer, val manager: Manager, val status: ServerStatus) extends SimpleChannelUpstreamHandler with Logging {
   logger.info("channel created")
 
   override def handleUpstream(ctx: ChannelHandlerContext, e: org.jboss.netty.channel.ChannelEvent) {
@@ -96,15 +98,31 @@ class VaporlightChannelHandler(val channels: ChannelGroup, val local: ChannelLoc
   }
 
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    channels.add(e.getChannel)
-    local.set(ctx.getChannel, new Client(settings, mixer, manager))
+    assume(ctx.getChannel.getLocalAddress.isInstanceOf[InetSocketAddress])
+    assume(ctx.getChannel.getRemoteAddress.isInstanceOf[InetSocketAddress])
+    assume(ctx.getChannel eq e.getChannel)
+
+    val channel = ctx.getChannel
+    channels.add(channel)
+    val client = new Client(channel.getId, settings, mixer, manager,
+      channel.getLocalAddress.asInstanceOf[InetSocketAddress],
+      channel.getRemoteAddress.asInstanceOf[InetSocketAddress],
+      () => channel.close)
+    local.set(ctx.getChannel, client)
     local.get(ctx.getChannel).connect()
+    status.addClient(client)
   }
 
   override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val client = local.get(ctx.getChannel)
-    local.remove(ctx.getChannel)
+    assume(ctx.getChannel.getLocalAddress.isInstanceOf[InetSocketAddress])
+    assume(ctx.getChannel.getRemoteAddress.isInstanceOf[InetSocketAddress])
+    assume(ctx.getChannel eq e.getChannel)
+
+    val channel = ctx.getChannel
+    val client = local.get(channel)
+    local.remove(channel)
     try {
+      status.removeClient(client)
       client.disconnect()
     } catch {
       case e: Exception =>

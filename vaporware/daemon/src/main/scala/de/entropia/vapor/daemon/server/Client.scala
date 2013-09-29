@@ -6,9 +6,10 @@ import de.entropia.vapor.daemon.config.{Settings, Token}
 import de.entropia.vapor.daemon.config.Token.Seq2TokenId
 import de.entropia.vapor.daemon.mixer.Manager
 import com.typesafe.scalalogging.slf4j.Logging
+import java.net.InetSocketAddress
 
 
-class Client(val settings: Settings, val mixer: Mixer, val manager: Manager) extends Logging {
+class Client(val id: Int, val settings: Settings, val mixer: Mixer, val manager: Manager, val local: InetSocketAddress, val remote: InetSocketAddress, val kill: () => Unit) extends Logging {
   var token: Option[Token] = None
   var overlay: Option[Overlay] = None
 
