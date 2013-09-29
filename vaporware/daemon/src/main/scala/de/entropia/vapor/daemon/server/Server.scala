@@ -33,6 +33,13 @@ class Server(val settings: Settings, val mixer: Mixer, val manager: Manager) {
     Executors.newCachedThreadPool)
 
   def start() {
+     settings.lowlevelServerInterface match {
+       case Some((host, port)) => start(host, port)
+       case _ => // pass
+     }
+  }
+
+  def start(host: String, port: Int) {
     val bootstrap = new ServerBootstrap(factory)
     bootstrap.setOption("reuseAddress", true)
     bootstrap.setOption("keepAlive", true)
@@ -42,7 +49,7 @@ class Server(val settings: Settings, val mixer: Mixer, val manager: Manager) {
         new VaporlightFrameDecoder(),
         new VaporlightChannelHandler(channels, clients, settings, mixer, manager))
     })
-    channels.add(bootstrap.bind(new InetSocketAddress(7534)))
+    channels.add(bootstrap.bind(new InetSocketAddress(host, port)))
   }
 
   def quit() {

@@ -11,7 +11,14 @@ import de.entropia.vapor.daemon.web.Webserver._
 class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backlight) {
 
   def start() {
-    unfiltered.netty.Http(8080).plan(plan).start()
+    settings.webServerInterface match {
+      case Some((host, port)) => start(host, port)
+      case _ => // pass
+    }
+  }
+
+  def start(host: String, port: Int) {
+    unfiltered.netty.Http(port, host).plan(plan).start()
   }
 
   def plan() = unfiltered.netty.cycle.Planify {

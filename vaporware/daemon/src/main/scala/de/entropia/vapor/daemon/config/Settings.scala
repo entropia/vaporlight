@@ -14,6 +14,8 @@ class Settings(config: Config) {
   val channels = config.getChannels("mixer.channels")
   val leds = channels.keySet.map(_._1)
   val channelCounts = config.getChannelCounts("hardware.channels")
+  val lowlevelServerInterface = config.getServerSettings("server.lowlevel")
+  val webServerInterface = config.getServerSettings("server.web")
 }
 
 object Settings {
@@ -31,6 +33,15 @@ final case class NetworkDeviceSettings(val host: String, val port: Int) extends 
 final case class FileDeviceSettings(val path: String) extends DeviceSettings
 
 class RichConfig(val config: Config) {
+
+  def getServerSettings(baseKey: String): Option[(String, Int)] = {
+    if (config.hasPath(baseKey)) {
+      val subconf = config.getConfig(baseKey)
+      Some((subconf.getString("interface"), subconf.getInt("port")))
+    } else {
+      None
+    }
+  }
 
   def getDeviceSettings(baseKey: String): DeviceSettings = {
     val subconf = config.getConfig(baseKey)
