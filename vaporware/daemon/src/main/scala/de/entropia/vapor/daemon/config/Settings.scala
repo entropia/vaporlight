@@ -12,6 +12,7 @@ class Settings(config: Config) {
   val device = config.getDeviceSettings("hardware.device")
   val tokens = config.getTokens("mixer.tokens")
   val channels = config.getChannels("mixer.channels")
+  val leds = channels.keySet.map(_._1)
   val channelCounts = config.getChannelCounts("hardware.channels")
 }
 

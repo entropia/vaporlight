@@ -2,6 +2,26 @@ Protocols
 =========
 
 
+Router Web API
+--------------
+
+If enabled in the router config, the router can be
+controlled using an HTTP-based API.
+
+Use the dimmer to regulate the global brightness::
+
+  POST /api/dimmer       <= on
+  POST /api/dimmer       <= off
+  POST /api/dimmer       <= 0A
+  GET  /api/dimmer       => 0A
+
+The backlight is a special layer that is below all other
+layers. It always sets all LEDs to the same color::
+
+  POST /api/backlight    <= FF00FF
+  GET  /api/backlight    => FF00FF
+
+
 Network protocol
 ----------------
 
