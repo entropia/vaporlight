@@ -97,6 +97,6 @@ object HighPrecisionSetMessage extends MessageType {
     require(payload.size == payloadLength)
     val led = (payload(0).toUnsignedInt << 8) + payload(1).toUnsignedInt
     val color = RgbColor.fromRrGgBbAaByteSeq(payload.slice(2, payload.size))
-    new LowPrecisionSetMessage(led, color.get)
+    new HighPrecisionSetMessage(led, color.get)
   }
 }
