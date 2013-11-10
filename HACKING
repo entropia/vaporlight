@@ -69,8 +69,8 @@ To escape a payload, substitute 0x54 by 0x54 0x00 and 0x55 by 0x54 0x01.
 Each frame consists of the start mark and an escaped payload.
 
   <frame> ::= 0x55 escape(<frame-payload>)
-  <frame-payload> ::= <address> <command> | <strobe>
-  <command> ::= <set-raw> | <set-xyY> | <set-conf> | <set-addr>
+  <frame-payload> ::= <address> <command>
+  <command> ::= <set-raw> | <set-xyY> | <set-conf> | <set-addr> | <strobe>
 
 The set-raw command can be used to set the values for the PWM output
 channels directly. Currently, all LED modules have 16 channels.
@@ -80,12 +80,12 @@ channels directly. Currently, all LED modules have 16 channels.
 Alternatively, the desired colors can be expressed using the xyY color
 space. Note that this requires properly calibrated LED modules.
 
-  <set-xyy> ::= 0x01 ( <xyY> ){5} 0x00
+  <set-xyy> ::= 0x01 ( <xyY> ){5}
   <xyY> ::= <x: int16> <y: int16> <Y: int16>
 
-Updates only take effect when a strobe frame is sent:
+Updates only take effect when a strobe command is sent:
 
-  <strobe> ::= 0xfe
+  <strobe> ::= 0xff
 
 Again, all 16-bit numbers are big endian::
 

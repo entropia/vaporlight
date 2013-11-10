@@ -7,6 +7,9 @@ package de.entropia.vapor.hardware
 class Encoder(val framer: Framer) {
   val SET_RAW_COMMAND = 0x00.toByte
   val SET_XYY_COMMAND = 0x01.toByte
+  val STROBE_COMMAND = 0xFF.toByte
+
+  val BROADCAST_ADDRESS = 0xFF.toByte
 
   val HIGH_MASK = 65280 // 0b1111111100000000
   val LOW_MASK = 255 // 0b0000000011111111
@@ -17,7 +20,7 @@ class Encoder(val framer: Framer) {
   }
 
   def strobe() {
-    framer.write(Vector(0xfe.toByte))
+    framer.write(Vector(BROADCAST_ADDRESS, STROBE_COMMAND))
     framer.flush()
   }
 }
