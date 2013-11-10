@@ -23,15 +23,20 @@ typedef enum {
 	// A start byte (0x55) has been received.
 	GOT_START,
 
-	// A command byte that the command interpreter is interested
-	// in has been received. Its arguments are now read.
+	// A address byte this module listenes to has been
+	// received. The command is now read.
 	READING,
 } isr_state_t;
 
 /*
- * The currently set filter for USART commands.
+ * The currently set address filter for USART commands.
  */
-static usart_filter_t usart_filter;
+static usart_address_filter_t address_filter;
+
+/*
+ * The currently set length check function for USART commands.
+ */
+static usart_length_check_t length_check;
 
 /*
  * Shared between ISR and usart_next_command.
@@ -73,11 +78,11 @@ static isr_state_t isr_state = IDLE;
 // 1, if the last character was ESCAPE_MARK
 static int isr_escape = 0;
 // The buffer currently used for writing.
-static int isr_write_buffer = 0;
+static int isr_write_buffer = USART_BUFFER_COUNT - 1;
 // Index into the writing buffer, points to first free space.
 static int isr_write_idx = 0;
-// Total number of bytes to be written for this command.
-static int isr_length = 0;
+// Total number of bytes remaining until the next length check.
+static int isr_bytes_remaining = 0;
 // USART failure counter.
 static fail_t isr_usart_fails;
 
@@ -86,13 +91,6 @@ static fail_t isr_usart_fails;
  * function accessing the USART.
  */
 void usart2_init() {
-	// Warning: Heuristic!
-	// Even if these checks do not fail, the USART buffers may still be too short.
-	// They must be large enough to store the longest possible command.
-	// For command lengths, see command_len in command.c.
-	_Static_assert(CMD_BUFFER_LEN > MODULE_LENGTH + 3, "USART buffers are too short");
-	_Static_assert(CMD_BUFFER_LEN > 4, "USART buffers are too short");
-
 	fail_init(&isr_usart_fails, USART_FAIL_TRESHOLD);
 
 	USART2_BRR = USART_BAUD_VALUE;
@@ -145,8 +143,15 @@ unsigned char *usart2_next_command() {
  * The filter gets passed a USART command and must return a nonzero value
  * to indicate interest in the command.
  */
-void usart2_set_filter(usart_filter_t filter) {
-	usart_filter = filter;
+void usart2_set_address_filter(usart_address_filter_t filter) {
+	address_filter = filter;
+}
+
+/*
+ * Sets a length check function for USART reception.
+ */
+void usart2_set_length_check(usart_length_check_t check) {
+	length_check = check;
 }
 
 /*
@@ -158,8 +163,6 @@ void usart2_set_filter(usart_filter_t filter) {
  * recording the failure.
  */
 static void isr_read_error() {
-	dled_toggle();
-
 	// Abort current reception
 	isr_write_idx = 0;
 	isr_state = IDLE;
@@ -167,29 +170,6 @@ static void isr_read_error() {
 	if (fail_event(&isr_usart_fails, 1)) {
 		// Too many failures, raise an error.
 		error(ER_USART_RX, STR_WITH_LEN("Too many USART errors"), EA_PANIC);
-	}
-}
-
-/*
- * Checks to see if the command currently in the active ISR write buffer is
- * finished. If so, moves on to the next buffer and notifies the main program.
- */
-static void isr_try_finish() {
-	if (isr_write_idx == isr_length) {
-#ifdef TRACE_USART
-		debug_string("f");
-#endif
-
-		// Command is finished.
-		if (isr_write_buffer == USART_BUFFER_COUNT - 1) {
-			isr_write_buffer = 0;
-		} else {
-			isr_write_buffer++;
-		}
-		isr_write_idx = 0;
-		isr_state = IDLE;
-
-		atomic_increment(&commands_pending);
 	}
 }
 
@@ -230,7 +210,6 @@ static void isr_read_command(unsigned char in_byte) {
 	// mark we must abort the current command and go into
 	// the GOT_START state.
 	if (in_byte == START_MARK) {
-		isr_write_idx = 0;
 		isr_state = GOT_START;
 	} else {
 
@@ -241,10 +220,10 @@ static void isr_read_command(unsigned char in_byte) {
 			break;
 
 		case GOT_START:
-			// This byte (the one after start) is the command.
-			// Check if the command interpreter is interested.
-			if (usart_filter(in_byte)) {
-				// Start a new command.
+			// This byte (the one after start) is the destination address.
+			// Check if we are listening to it.
+			if (address_filter(in_byte)) {
+				// Check for space in the command buffers.
 				if (commands_pending >= USART_BUFFER_COUNT) {
 					// There are no free command buffers,
 					// this command must be dropped.
@@ -253,20 +232,16 @@ static void isr_read_command(unsigned char in_byte) {
 					return;
 				}
 
-				isr_state = READING;
-				isr_buffers[isr_write_buffer][isr_write_idx++] = in_byte;
-				isr_length = command_length(in_byte);
-
-				if (isr_length == 0) {
-					// An invalid command was received.
-					// Abort the command.
-					isr_write_idx = 0;
-					isr_state = IDLE;
+				// Allocate a new buffer.
+				if (isr_write_buffer == USART_BUFFER_COUNT - 1) {
+					isr_write_buffer = 0;
 				} else {
-					// The command is valid, in fact it could already
-					// be finished (such as Strobe). Check for that.
-					isr_try_finish();
+					isr_write_buffer++;
 				}
+				isr_write_idx = 0;
+				isr_bytes_remaining = 1;
+
+				isr_state = READING;
 
 			} else {
 				isr_state = IDLE;
@@ -274,9 +249,19 @@ static void isr_read_command(unsigned char in_byte) {
 			break;
 
 		case READING:
-			// Next byte.
+			// Store the next byte.
 			isr_buffers[isr_write_buffer][isr_write_idx++] = in_byte & 0xff;
-			isr_try_finish();
+			isr_bytes_remaining--;
+
+			if (isr_bytes_remaining <= 0) {
+				isr_bytes_remaining = length_check(isr_buffers[isr_write_buffer], isr_write_idx);
+			}
+
+			if (isr_bytes_remaining <= 0) {
+				atomic_increment(&commands_pending);
+				isr_state = IDLE;
+			}
+
 			break;
 
 		default:

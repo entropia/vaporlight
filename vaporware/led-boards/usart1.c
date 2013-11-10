@@ -60,7 +60,7 @@ void usart1_putchar(const char message) {
 	if (output_write_index == OUTPUT_BUFFER_LENGTH) {
 		output_write_index = 0;
 	}
-		
+
 	output_pending++;
 
 	if (output_idle) {
@@ -84,12 +84,12 @@ static void isr_ready_to_send() {
 		}
 
 		output_pending--;
-		
+
 	} else /* output_pending == 0 */ {
 		// Switch off TXE interrupt to avoid infinite
 		// interrupt loop.
 		USART1_CR1 &= ~(USART_CR1_TXEIE);
-		
+
 		output_idle = 1;
 	}
 }
@@ -137,7 +137,7 @@ static void isr_read_input(char input) {
 	if (input_write_index == INPUT_BUFFER_LENGTH) {
 		input_write_index = 0;
 	}
-	
+
 	input_pending++;
 
 	if (input_pending > XOFF_TRESHOLD) {
@@ -194,7 +194,7 @@ int usart1_has_input() {
 
 void usart1_init() {
 	USART1_BRR = CONSOLE_BAUD_VALUE;
-	
+
 	USART1_CR1 = USART_CR1_UE |
 		USART_CR1_TE | USART_CR1_TXEIE |
 		USART_CR1_RE | USART_CR1_RXNEIE;
@@ -208,7 +208,7 @@ void __attribute__ ((interrupt("IRQ"))) isr_usart1() {
 	if (sr & (USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE)) {
 		error(ER_USART_RX, STR_WITH_LEN("USART1 chrashed"), EA_PANIC);
 	}
-	
+
 	unsigned short dr = USART1_DR; // This read resets the error flags.
 
 	if (sr & USART_SR_TXE) {

@@ -29,7 +29,8 @@ void debug_hex(int x, int width);
  * debug USART. If the resulting string is shorter than min_width, it
  * is padded at the left with spaces.
  */
-void debug_int(unsigned int x, int min_width);
+void debug_uint(unsigned int x, int min_width);
+void debug_sint(unsigned int x, int min_width);
 
 void debug_fixed(fixed_t x);
 
