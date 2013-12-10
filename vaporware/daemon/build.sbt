@@ -2,7 +2,7 @@ name := "de.entropia.vapor.daemon"
 
 version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 resolvers ++= Seq(
     "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -18,8 +18,10 @@ libraryDependencies ++= Seq(
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
     "com.sparetimelabs" % "purejavacomm" % "0.0.16" classifier "",
     "com.typesafe" % "config" % "1.0.0",
-    "net.databinder" %% "unfiltered-filter" % "0.7.0",
-    "net.databinder" %% "unfiltered-netty-server" % "0.7.0"
+    "net.databinder" %% "unfiltered-filter" % "0.7.1",
+    "net.databinder" %% "unfiltered-netty-server" % "0.7.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.0",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.3.0"
 )
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
