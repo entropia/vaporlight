@@ -39,12 +39,19 @@ trait Color {
   /** Returns RGBA as sequence of bytes (16 bit precision, big endian) */
   def asRrGgBbAaByteVector: Vector[Byte] =
     Vector((r >> 8).toByte, (r & 0xff).toByte, (g >> 8).toByte, (g & 0xff).toByte, (b >> 8).toByte, (b & 0xff).toByte, (a >> 8).toByte, (a & 0xff).toByte)
+
+  /** Returns a hex string like "00FF00" */
+  def asRgbHexString: String =
+    f"${r >> 8}%02x${g >> 8}%02x${b >> 8}%02x"
 }
 
 object Color {
 
   def black =
     RgbColor.from8BitRgba(0, 0, 0, 255)
+
+  def dim(alpha: Int) =
+    RgbColor.from16BitRgba(0, 0, 0, alpha)
 
   def transparent =
     RgbColor.from8BitRgba(0, 0, 0, 0)

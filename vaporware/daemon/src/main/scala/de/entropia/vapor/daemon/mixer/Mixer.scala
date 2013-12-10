@@ -43,11 +43,10 @@ class Mixer(val settings: Settings, val hw: Hardware) {
    * Multiple overlays may use the same priority. Overlays with equal priority
    * are blended in order of creation (ie, later overlays have "higher" priority).
    */
-  def register(priority: Int, persistent: Boolean) = {
+  def register(priority: Int, persistent: Boolean): Overlay = {
     synchronized {
       val overlay = new Overlay(this, priority, persistent)
-      overlays.append(overlay)
-      overlays.sortBy(_.priority)
+      overlays.insert(overlays.lastIndexWhere(_.priority <= overlay.priority) + 1, overlay)
       overlay
     }
   }
