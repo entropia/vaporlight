@@ -14,6 +14,13 @@ import scala.util.{Success, Try}
 import java.io.ByteArrayOutputStream
 
 class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backlight, val serverStatus: ServerStatus) {
+  val docUrl = "https://github.com/entropia/vaporlight/blob/master/HACKING"
+  val docHtml =
+  <body>
+    <p>Welcome! You've reached the Vaporlight Daemons web interface.</p>
+    <p>Documentation: <a href={docUrl}>{docUrl}</a></p>
+  </body>
+
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
 
@@ -29,6 +36,9 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
   }
 
   def plan() = unfiltered.netty.cycle.Planify {
+    case Path(Seg(Nil)) => Html(docHtml)
+    case Path(Seg("api" :: Nil)) => Html(docHtml)
+
     case Path(Seg("hello" :: Nil)) => ResponseString("hello, world")
 
     case req@Path(Seg("api" :: "dimmer" :: Nil)) => req match {
