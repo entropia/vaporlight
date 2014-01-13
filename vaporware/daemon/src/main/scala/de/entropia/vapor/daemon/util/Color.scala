@@ -47,6 +47,9 @@ trait Color {
 
 object Color {
 
+  /** The maximum value representable using a 16 bit precision. */
+  val MAX_VALUE = 65535 // = 2 ^ 16 - 1
+
   def black =
     RgbColor.from8BitRgba(0, 0, 0, 255)
 
@@ -61,26 +64,23 @@ object Color {
  * A color represented by "red", "green" and "blue" components.
  */
 case class RgbColor(val r: Int, val g: Int, val b: Int, val a: Int) extends Color {
-  require(0 <= r && r <= RgbColor.MAX_VALUE, s"r = $r not in [0..${RgbColor.MAX_VALUE}]")
-  require(0 <= g && g <= RgbColor.MAX_VALUE, s"g = $g not in [0..${RgbColor.MAX_VALUE}]")
-  require(0 <= b && b <= RgbColor.MAX_VALUE, s"b = $b not in [0..${RgbColor.MAX_VALUE}]")
-  require(0 <= a && a <= RgbColor.MAX_VALUE, s"a = $a not in [0..${RgbColor.MAX_VALUE}]")
+  require(0 <= r && r <= Color.MAX_VALUE, s"r = $r not in [0..${Color.MAX_VALUE}]")
+  require(0 <= g && g <= Color.MAX_VALUE, s"g = $g not in [0..${Color.MAX_VALUE}]")
+  require(0 <= b && b <= Color.MAX_VALUE, s"b = $b not in [0..${Color.MAX_VALUE}]")
+  require(0 <= a && a <= Color.MAX_VALUE, s"a = $a not in [0..${Color.MAX_VALUE}]")
 
   def blendOver(bg: Color): Color = {
     val fg = this
-    val alpha = fg.a.toFloat / RgbColor.MAX_VALUE
+    val alpha = fg.a.toFloat / Color.MAX_VALUE
     val blendOver = (fgVal: Int, bgVal: Int) => (alpha * fgVal + (1.0f - alpha) * bgVal).toInt
-    new RgbColor(blendOver(fg.r, bg.r), blendOver(fg.g, bg.g), blendOver(fg.b, bg.b), RgbColor.MAX_VALUE)
+    new RgbColor(blendOver(fg.r, bg.r), blendOver(fg.g, bg.g), blendOver(fg.b, bg.b), Color.MAX_VALUE)
   }
 
   def opaque =
-    RgbColor(r, g, b, RgbColor.MAX_VALUE)
+    RgbColor(r, g, b, Color.MAX_VALUE)
 }
 
 object RgbColor {
-
-  /** The maximum value representable using a 16 bit precision. */
-  val MAX_VALUE = 65535 // = 2 ^ 16 - 1
 
   def from16BitRgba(r: Int, g: Int, b: Int, a: Int): Color =
     RgbColor(r, g, b, a)
