@@ -6,7 +6,8 @@ Router Web API
 --------------
 
 If enabled in the router config, the router can be
-controlled using an HTTP-based API.
+controlled using an HTTP-based API. The default port
+is 7535.
 
 Use the dimmer to regulate the global brightness::
 
