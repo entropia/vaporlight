@@ -12,8 +12,8 @@ Use the dimmer to regulate the global brightness::
 
   POST /api/dimmer       <= on
   POST /api/dimmer       <= off
-  POST /api/dimmer       <= 0A
-  GET  /api/dimmer       => 0A
+  POST /api/dimmer       <= A0A0
+  GET  /api/dimmer       => A0A0
 
 The backlight is a special layer that is below all other
 layers. It always sets all LEDs to the same color::

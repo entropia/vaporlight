@@ -42,7 +42,7 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
     case Path(Seg("hello" :: Nil)) => ResponseString("hello, world")
 
     case req@Path(Seg("api" :: "dimmer" :: Nil)) => req match {
-      case GET(_) => ResponseString("%02x".format(dimmer.dimness))
+      case GET(_) => ResponseString("%04x".format(dimmer.dimness))
       case POST(_) => Body.string(req) match {
         case "on" =>
           dimmer.dimToBrightest()
@@ -50,9 +50,9 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
         case "off" =>
           dimmer.dimToDarkest()
           ResponseString("dimmed to 0%")
-        case HexAlpha(dimness8Bit) =>
-          dimmer.dimTo(dimness8Bit << 8 | dimness8Bit)
-          ResponseString("dimmed to ${dimness8Bit / 255}%")
+        case HexAlpha(dimness16Bit) =>
+          dimmer.dimTo(dimness16Bit)
+          ResponseString(f"dimmed to ${dimness16Bit / 655.350}%.1f%%")
         case _ => BadRequest ~> ResponseString("bad request")
       }
       case _ => MethodNotAllowed ~> ResponseString("method not allowed")
@@ -117,7 +117,7 @@ object Webserver {
     }
   }
 
-  val alphaHexRegex = "([0-9a-fA-F]{2})".r
+  val alphaHexRegex = "([0-9a-fA-F]{4})".r
   val HexAlpha = new {
     def unapply(value: String): Option[Int] = value match {
       case alphaHexRegex(hex) => Some(Integer.valueOf(hex, 16))
