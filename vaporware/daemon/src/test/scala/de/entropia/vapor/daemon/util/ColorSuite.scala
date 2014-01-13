@@ -18,7 +18,7 @@ class ColorSuite extends FunSuite {
   }
 
   test("opaque version of color") {
-    assert(RgbColor(10, 20, 30, 255) === RgbColor.from8BitRgba(10, 20, 30, 40).opaque)
+    assert(RgbColor(10<<8|10, 20<<8|20, 30<<8|30, 255<<8|255) === RgbColor.from8BitRgba(10, 20, 30, 40).opaque)
   }
 
   test("serialization") {
@@ -28,7 +28,7 @@ class ColorSuite extends FunSuite {
   test("blending") {
     val fg = RgbColor.from8BitRgba(0, 255, 100, 128)
     val bg = RgbColor.from8BitRgba(0, 0, 0, 0)
-    assert(RgbColor.from8BitRgba(0, 128, 50, 255) === fg.blendOver(bg))
+    assert(RgbColor(0,32896,12900,65535) === fg.blendOver(bg))
   }
 
   test("blending of a transparent color over another color") {
