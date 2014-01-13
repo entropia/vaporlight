@@ -14,10 +14,10 @@ class Dimmer(settings: Settings, mixer: Mixer) {
   def dimToDarkest() =
     dimTo(0)
 
-  def dimTo(alpha: Int) = synchronized {
-    dimness = alpha
+  def dimTo(brightness: Int) = synchronized {
+    this.dimness = brightness
     settings.leds foreach ((led) =>
-      highestLayer.set(led, Color.dim(alpha)))
+      highestLayer.set(led, Color.dim(Color.MAX_VALUE - brightness)))
     highestLayer.strobe
   }
 }
