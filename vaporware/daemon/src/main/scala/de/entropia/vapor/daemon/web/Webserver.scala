@@ -43,17 +43,17 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
 
     case req@Path(Seg("api" :: "dimmer" :: Nil)) => req match {
       case GET(_) & Params(p) =>
-        ResponseString(supportJsonP(p, "%04x".format(dimmer.dimness)))
+        makeUnsafe(ResponseString(supportJsonP(p, "%04x".format(dimmer.dimness))))
       case POST(_) => Body.string(req) match {
         case "on" =>
           dimmer.dimToBrightest()
-          ResponseString("dimmed to 100%")
+          makeUnsafe(ResponseString("dimmed to 100%"))
         case "off" =>
           dimmer.dimToDarkest()
-          ResponseString("dimmed to 0%")
+          makeUnsafe(ResponseString("dimmed to 0%"))
         case HexAlpha(dimness16Bit) =>
           dimmer.dimTo(dimness16Bit)
-          ResponseString(f"dimmed to ${dimness16Bit / 655.350}%.1f%%")
+          makeUnsafe(ResponseString(f"dimmed to ${dimness16Bit / 655.350}%.1f%%"))
         case _ => BadRequest ~> ResponseString("bad request")
       }
       case _ => MethodNotAllowed ~> ResponseString("method not allowed")
@@ -61,11 +61,11 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
 
     case req@Path(Seg("api" :: "backlight" :: Nil)) => req match {
       case GET(_) & Params(p) =>
-        ResponseString(supportJsonP(p, backlight.color.asRgbHexString))
+        makeUnsafe(ResponseString(supportJsonP(p, backlight.color.asRgbHexString)))
       case POST(_) => Body.string(req) match {
         case HexRgbColor(color) =>
           backlight.setColor(color)
-          ResponseString(s"ok, set backlight to ${color}")
+          makeUnsafe(ResponseString(s"ok, set backlight to ${color}"))
         case _ => BadRequest ~> ResponseString("bad request")
       }
       case _ => MethodNotAllowed ~> ResponseString("method not allowed")
@@ -87,7 +87,7 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
           ))
           response.write('\n')
         }
-        ResponseString(response.toString)
+        makeUnsafe(ResponseString(response.toString))
       case _ => MethodNotAllowed ~> ResponseString("method not allowed")
     }
 
@@ -97,7 +97,7 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
           Try(serverStatus.getClients(Integer.parseInt(id))) match {
             case Success(client) =>
               client.kill()
-              ResponseString(s"ok, killed client $id")
+              makeUnsafe(ResponseString(s"ok, killed client $id"))
             case _ =>
               BadRequest ~> ResponseString("bad request")
           }
@@ -125,6 +125,9 @@ object Webserver {
       case _ => None
     }
   }
+
+  def makeUnsafe(rsp: ResponseString) = // allow javascript calls to read the response even if violating the same-origin policy
+    new ResponseHeader("Access-Control-Allow-Origin", Set("*")) ~> rsp
 
   def supportJsonP(params: Map[String, Seq[String]], responseText: String): String =
     if (params.contains("jsonp"))
