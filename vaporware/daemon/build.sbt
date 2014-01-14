@@ -1,6 +1,6 @@
 name := "de.entropia.vapor.daemon"
 
-version := "0.1.3-SNAPSHOT"
+version := "0.1.3"
 
 scalaVersion := "2.10.3"
 
