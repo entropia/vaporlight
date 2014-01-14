@@ -28,6 +28,10 @@ their connections::
   GET  /api/clients
   POST /api/clients/1234 <= kill
 
+The dimmer and backlight support jsonp. Just add `?jsonp=func` as
+a GET parameter and the response will be javascript calling the
+function named `func` with the results.
+
 
 Network protocol
 ----------------
