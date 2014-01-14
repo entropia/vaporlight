@@ -42,7 +42,8 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
     case Path(Seg("hello" :: Nil)) => ResponseString("hello, world")
 
     case req@Path(Seg("api" :: "dimmer" :: Nil)) => req match {
-      case GET(_) => ResponseString("%04x".format(dimmer.dimness))
+      case GET(_) & Params(p) =>
+        ResponseString(supportJsonP(p, "%04x".format(dimmer.dimness)))
       case POST(_) => Body.string(req) match {
         case "on" =>
           dimmer.dimToBrightest()
@@ -59,8 +60,8 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
     }
 
     case req@Path(Seg("api" :: "backlight" :: Nil)) => req match {
-      case GET(_) =>
-        ResponseString(backlight.color.asRgbHexString)
+      case GET(_) & Params(p) =>
+        ResponseString(supportJsonP(p, backlight.color.asRgbHexString))
       case POST(_) => Body.string(req) match {
         case HexRgbColor(color) =>
           backlight.setColor(color)
@@ -124,4 +125,10 @@ object Webserver {
       case _ => None
     }
   }
+
+  def supportJsonP(params: Map[String, Seq[String]], responseText: String): String =
+    if (params.contains("jsonp"))
+      "%s(\"%s\")".format(params("jsonp")(0), responseText)
+    else
+      responseText
 }
