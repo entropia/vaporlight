@@ -78,7 +78,7 @@ static isr_state_t isr_state = IDLE;
 // 1, if the last character was ESCAPE_MARK
 static int isr_escape = 0;
 // The buffer currently used for writing.
-static int isr_write_buffer = USART_BUFFER_COUNT - 1;
+static int isr_write_buffer = 0;
 // Index into the writing buffer, points to first free space.
 static int isr_write_idx = 0;
 // Total number of bytes remaining until the next length check.
@@ -110,6 +110,7 @@ void usart2_init() {
 unsigned char *usart2_next_command() {
 	// 1. Free the last command if it was being read from.
 	if (is_reading) {
+		interrupts_off();
 		if (read_buffer == USART_BUFFER_COUNT - 1) {
 			read_buffer = 0;
 		} else {
@@ -118,6 +119,7 @@ unsigned char *usart2_next_command() {
 		atomic_decrement(&commands_pending);
 
 		is_reading = 0;
+		interrupts_on();
 	}
 
 	// 2. Check if an overflow needs to be reported.
@@ -232,12 +234,6 @@ static void isr_read_command(unsigned char in_byte) {
 					return;
 				}
 
-				// Allocate a new buffer.
-				if (isr_write_buffer == USART_BUFFER_COUNT - 1) {
-					isr_write_buffer = 0;
-				} else {
-					isr_write_buffer++;
-				}
 				isr_write_idx = 0;
 				isr_bytes_remaining = 1;
 
@@ -259,6 +255,12 @@ static void isr_read_command(unsigned char in_byte) {
 
 			if (isr_bytes_remaining <= 0) {
 				atomic_increment(&commands_pending);
+				// Allocate a new buffer.
+				if (isr_write_buffer == USART_BUFFER_COUNT - 1) {
+					isr_write_buffer = 0;
+				} else {
+					isr_write_buffer++;
+				}
 				isr_state = IDLE;
 			}
 
