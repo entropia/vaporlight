@@ -33,6 +33,16 @@ a GET parameter and the response will be javascript calling the
 function named `func` with the results.
 
 
+Router Webhooks
+---------------
+
+In the router configuration, you can specify URLs that the router
+will call when the backlight color or dimmer setting changes:
+
+    GET /foo?dimmer=12826
+    GET /bar?color=ffff0000ffff
+
+
 Network protocol
 ----------------
 
