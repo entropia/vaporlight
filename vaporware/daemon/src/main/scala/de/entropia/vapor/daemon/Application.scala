@@ -6,7 +6,7 @@ import de.entropia.vapor.server.Server
 import de.entropia.vapor.daemon.config.Settings
 import de.entropia.vapor.daemon.mixer.Manager
 import com.typesafe.scalalogging.slf4j.Logging
-import de.entropia.vapor.daemon.web.Webserver
+import de.entropia.vapor.daemon.web.{BacklightNotifications, DimmerNotifications, Notifications, Webserver}
 import de.entropia.vapor.daemon.service.{Dimmer, Backlight}
 
 
@@ -16,8 +16,8 @@ class Application(settings: Settings) extends Logging {
   val manager = new Manager(mixer, settings)
   val server = new Server(settings, mixer, manager)
   val webserver = new Webserver(settings,
-    new Dimmer(settings, mixer),
-    new Backlight(settings, mixer),
+    new Dimmer(settings, mixer, new DimmerNotifications(settings.notifications.dimmer).execute),
+    new Backlight(settings, mixer, new BacklightNotifications(settings.notifications.backlight).execute),
     server.status)
 
   def start() {

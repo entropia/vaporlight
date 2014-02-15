@@ -16,6 +16,7 @@ class Settings(config: Config) {
   val channelCounts = config.getChannelCounts("hardware.channels")
   val lowlevelServerInterface = config.getServerSettings("server.lowlevel")
   val webServerInterface = config.getServerSettings("server.web")
+  val notifications = config.getNotificationSettings("notifications")
 }
 
 object Settings {
@@ -32,6 +33,8 @@ final case class NetworkDeviceSettings(val host: String, val port: Int) extends 
 
 final case class FileDeviceSettings(val path: String) extends DeviceSettings
 
+final case class Notifications(val backlight: Seq[String], val dimmer: Seq[String])
+
 class RichConfig(val config: Config) {
 
   def getServerSettings(baseKey: String): Option[(String, Int)] = {
@@ -41,6 +44,13 @@ class RichConfig(val config: Config) {
     } else {
       None
     }
+  }
+
+  def getNotificationSettings(baseKey: String): Notifications = {
+    val subconf = config.getConfig("notifications")
+    Notifications(
+      subconf.getStringList("backlight"),
+      subconf.getStringList("dimmer"))
   }
 
   def getDeviceSettings(baseKey: String): DeviceSettings = {

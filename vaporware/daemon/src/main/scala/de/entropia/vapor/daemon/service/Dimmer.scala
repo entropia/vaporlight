@@ -4,7 +4,7 @@ import de.entropia.vapor.mixer.Mixer
 import de.entropia.vapor.daemon.config.Settings
 import de.entropia.vapor.util.Color
 
-class Dimmer(settings: Settings, mixer: Mixer) {
+class Dimmer(settings: Settings, mixer: Mixer, notify: Int => Unit = (Int) => Unit) {
   val highestLayer = mixer.register(Integer.MAX_VALUE, true)
   var dimness = 65535
 
@@ -19,5 +19,6 @@ class Dimmer(settings: Settings, mixer: Mixer) {
     settings.leds foreach ((led) =>
       highestLayer.set(led, Color.dim(Color.MAX_VALUE - brightness)))
     highestLayer.strobe
+    notify(brightness)
   }
 }

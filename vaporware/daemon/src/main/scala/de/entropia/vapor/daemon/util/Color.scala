@@ -43,6 +43,10 @@ trait Color {
   /** Returns a hex string like "00FF00" */
   def asRgbHexString: String =
     f"${r >> 8}%02x${g >> 8}%02x${b >> 8}%02x"
+
+  /** Returns a hex string like "0000FFFF0000" (for green) */
+  def asRrGgBbHexString: String =
+    f"$r%04x$g%04x$b%04x"
 }
 
 object Color {
