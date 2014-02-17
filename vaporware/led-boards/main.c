@@ -3,12 +3,14 @@
 */
 #include "main.h"
 
+#include "color.h"
 #include "command.h"
 #include "config.h"
 #include "console.h"
 #include "debug.h"
 #include "error.h"
 #include "fail.h"
+#include "git_version.h"
 #include "heat.h"
 #include "pwm.h"
 #include "usart1.h"
@@ -29,6 +31,21 @@ static void panic_on_overheat() {
 }
 
 /*
+ * Display the current git revision as colors
+ */
+static void display_version(void) {
+	uint32_t rev = GIT_VERSION_HEX;
+
+	for(uint8_t c = 0; c < 15; c++) {
+		uint8_t pwm_channel = convert_channel_index(c);
+
+		pwm_set_brightness(pwm_channel, (rev & 1) ? 0xFFFF : 0x0);
+
+		rev >>= 1;
+	}
+}
+
+/*
  * Main program. Initializes all the modules and then enters the main loop.
  * The actual work is done in command.c.
  */
@@ -44,13 +61,18 @@ int main() {
 #endif
 
 	pwm_init();
-	pwm_set_state(PWM_STOP);
 
 	heat_init(panic_on_overheat);
 
 	ret = load_config();
 
+	// Display the version number on lights during bootup
+	if(ret == E_SUCCESS)
+		display_version();
+
 	mode = console_ask_mode();
+
+	pwm_set_state(PWM_STOP);
 
 	if (ret == E_SUCCESS) {
 		// We are running in normal mode with config available.
