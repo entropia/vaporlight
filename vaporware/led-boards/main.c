@@ -31,17 +31,23 @@ static void panic_on_overheat() {
 }
 
 /*
- * Display the current git revision as colors
+ * Display the current git revision as colors.
+ *
+ * If there is no channel mapping yet, display a dim white instead.
  */
-static void display_version(void) {
+static void display_boot_colors(bool have_channel_mapping) {
 	uint32_t rev = GIT_VERSION_HEX;
 
 	for(uint8_t c = 0; c < 15; c++) {
-		uint8_t pwm_channel = convert_channel_index(c);
+		if(have_channel_mapping) {
+			uint8_t pwm_channel = convert_channel_index(c);
 
-		pwm_set_brightness(pwm_channel, (rev & 1) ? 0xFFFF : 0x0);
+			pwm_set_brightness(pwm_channel, (rev & 1) ? 0xFFFF : 0x0);
 
-		rev >>= 1;
+			rev >>= 1;
+		} else {
+			pwm_set_brightness(c, 0x7FFF);
+		}
 	}
 
 	pwm_send_frame();
@@ -69,8 +75,7 @@ int main() {
 	ret = load_config();
 
 	// Display the version number on lights during bootup
-	if(ret == E_SUCCESS)
-		display_version();
+	display_boot_colors(ret == E_SUCCESS);
 
 	mode = console_ask_mode();
 
