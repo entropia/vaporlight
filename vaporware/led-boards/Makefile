@@ -43,7 +43,7 @@ all: git_version.h $(PRG).elf lst text eeprom
 
 git_version.h:
 	echo "#define GIT_VERSION_ID \""$(shell git rev-parse HEAD)"\"" > git_version.h
-	echo "#define GIT_VERSION_HEX 0x"$(shell git rev-parse HEAD | tail -c9) >> git_version.h
+	echo "#define GIT_VERSION_HEX 0x"$(shell git rev-parse HEAD | head -c8) >> git_version.h
 
 $(PRG).elf: $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)

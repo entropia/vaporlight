@@ -36,15 +36,15 @@ static void panic_on_overheat() {
  * If there is no channel mapping yet, display a dim white instead.
  */
 static void display_boot_colors(bool have_channel_mapping) {
-	uint32_t rev = GIT_VERSION_HEX;
+	uint32_t mask = 1 << 31;
 
 	for(uint8_t c = 0; c < 15; c++) {
 		if(have_channel_mapping) {
 			uint8_t pwm_channel = convert_channel_index(c);
 
-			pwm_set_brightness(pwm_channel, (rev & 1) ? 0xFFFF : 0x0);
+			pwm_set_brightness(pwm_channel, (GIT_VERSION_HEX & mask) ? 0xFFFF : 0x0);
 
-			rev >>= 1;
+			mask >>= 1;
 		} else {
 			pwm_set_brightness(c, 0x7FFF);
 		}
