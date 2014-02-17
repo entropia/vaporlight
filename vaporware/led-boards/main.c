@@ -43,6 +43,8 @@ static void display_version(void) {
 
 		rev >>= 1;
 	}
+
+	pwm_send_frame();
 }
 
 /*
