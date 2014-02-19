@@ -51,7 +51,7 @@ static void dled_blink(int pattern) {
 	dled_off();
 
 	delay_ms(DEBUG_LED_SPEED);
-	
+
 	for (int i = 8 * sizeof(int); i >= 0; i--) {
 		if (pattern & (1 << i)) {
 			dled_on();
@@ -74,28 +74,27 @@ void error(err_reason_t reason, char *message, int length, err_action_t action) 
 	case EA_RESUME:
 		dled_toggle();
 #ifdef TRACE_ERRORS
-		dled_blink((int) reason);
 		debug_write(message, length);
 #endif
 		return;
 		break;
 	case EA_RESET:
 		pwm_set_state(PWM_STOP);
-		
+
 		dled_blink((int) reason);
 		console_write_raw(message, length);
-		
+
 		// Reset the system
 		SCB_AIRCR |= SCB_AIRCR_SYSRESETREQ;
 		break;
 	case EA_PANIC:
 		pwm_set_state(PWM_STOP);
-		
+
 		while (1) {
 			dled_blink((int) reason);
 			console_write_raw(message, length);
 		}
-		
+
 		break;
 	}
 }
