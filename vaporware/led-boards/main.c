@@ -122,6 +122,13 @@ int main() {
 
 			if (ret != E_SUCCESS) {
 				error(ER_USART_RX, STR_WITH_LEN("Bogus USART command."), EA_RESUME);
+#ifdef TRACE_ERRORS
+				debug_sint(ret, 0);
+				debug_string(" ");
+				for (int i = 0; i < 36; i++) {
+					debug_hex(command[i], 2);
+				}
+#endif
 			}
 		}
 
