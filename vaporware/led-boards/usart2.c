@@ -181,6 +181,7 @@ static void isr_read_error() {
  * usart_next_command.
  */
 static void isr_read_command(unsigned char in_byte) {
+
 	// If the last character was ESCAPE_MARK, we now need
 	// to evaluate the escape sequence.
 	if (isr_escape) {
@@ -188,10 +189,10 @@ static void isr_read_command(unsigned char in_byte) {
 
 		switch (in_byte) {
 		case 0x00:
-			in_byte = 0x54;
+			in_byte = ESCAPE_MARK;
 			break;
 		case 0x01:
-			in_byte = 0x55;
+			in_byte = START_MARK;
 			break;
 		default:
 			// Bad escape sequence
@@ -199,77 +200,77 @@ static void isr_read_command(unsigned char in_byte) {
 			return;
 			break;
 		}
-	}
-
-	// If ESCAPE_MARK is received, it must be dropped and
-	// only isr_escape set.
-	if (in_byte == ESCAPE_MARK) {
-		isr_escape = 1;
-		return;
-	}
-
-	// Whatever the state is, on receiving the start-of-command
-	// mark we must abort the current command and go into
-	// the GOT_START state.
-	if (in_byte == START_MARK) {
-		isr_state = GOT_START;
 	} else {
-
-		switch(isr_state) {
-		case IDLE:
-			// Nothing to do. The code above takes care of
-			// receiving the start byte.
-			break;
-
-		case GOT_START:
-			// This byte (the one after start) is the destination address.
-			// Check if we are listening to it.
-			if (address_filter(in_byte)) {
-				// Check for space in the command buffers.
-				if (commands_pending >= USART_BUFFER_COUNT) {
-					// There are no free command buffers,
-					// this command must be dropped.
-					atomic_set(&command_overflow);
-					isr_state = IDLE;
-					return;
-				}
-
-				isr_write_idx = 0;
-				isr_bytes_remaining = 1;
-
-				isr_state = READING;
-
-			} else {
-				isr_state = IDLE;
-			}
-			break;
-
-		case READING:
-			// Store the next byte.
-			isr_buffers[isr_write_buffer][isr_write_idx++] = in_byte & 0xff;
-			isr_bytes_remaining--;
-
-			if (isr_bytes_remaining <= 0) {
-				isr_bytes_remaining = length_check(isr_buffers[isr_write_buffer], isr_write_idx);
-			}
-
-			if (isr_bytes_remaining <= 0) {
-				atomic_increment(&commands_pending);
-				// Allocate a new buffer.
-				if (isr_write_buffer == USART_BUFFER_COUNT - 1) {
-					isr_write_buffer = 0;
-				} else {
-					isr_write_buffer++;
-				}
-				isr_state = IDLE;
-			}
-
-			break;
-
-		default:
-			error(ER_BUG, STR_WITH_LEN("isr_read_command: Corrupt isr_state"),
-			      EA_PANIC);
+		// If ESCAPE_MARK is received, it must be dropped and
+		// only isr_escape set.
+		if (in_byte == ESCAPE_MARK) {
+			isr_escape = 1;
+			return;
 		}
+
+		// Whatever the state is, on receiving the start-of-command
+		// mark we must abort the current command and go into
+		// the GOT_START state.
+		if (in_byte == START_MARK) {
+			isr_state = GOT_START;
+			return;
+		}
+	}
+
+	switch(isr_state) {
+	case IDLE:
+		// Nothing to do. The code above takes care of
+		// receiving the start byte.
+		break;
+
+	case GOT_START:
+		// This byte (the one after start) is the destination address.
+		// Check if we are listening to it.
+		if (address_filter(in_byte)) {
+			// Check for space in the command buffers.
+			if (commands_pending >= USART_BUFFER_COUNT) {
+				// There are no free command buffers,
+				// this command must be dropped.
+				atomic_set(&command_overflow);
+				isr_state = IDLE;
+				return;
+			}
+
+			isr_write_idx = 0;
+			isr_bytes_remaining = 1;
+
+			isr_state = READING;
+
+		} else {
+			isr_state = IDLE;
+		}
+		break;
+
+	case READING:
+		// Store the next byte.
+		isr_buffers[isr_write_buffer][isr_write_idx++] = in_byte & 0xff;
+		isr_bytes_remaining--;
+
+		if (isr_bytes_remaining <= 0) {
+			isr_bytes_remaining = length_check(isr_buffers[isr_write_buffer], isr_write_idx);
+		}
+
+		if (isr_bytes_remaining <= 0) {
+			atomic_increment(&commands_pending);
+			// Allocate a new buffer.
+			if (isr_write_buffer == USART_BUFFER_COUNT - 1) {
+				isr_write_buffer = 0;
+			} else {
+				isr_write_buffer++;
+			}
+			isr_state = IDLE;
+		}
+
+		break;
+
+	default:
+		error(ER_BUG, STR_WITH_LEN("isr_read_command: Corrupt isr_state"),
+		      EA_PANIC);
 	}
 }
 
