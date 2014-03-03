@@ -72,7 +72,7 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
     }
 
     case req@Path(Seg("api" :: "clients" :: Nil)) => req match {
-      case GET(_) =>
+      case GET(_) & Params(p) =>
         val response = new ByteArrayOutputStream()
         for ((id, client) <- serverStatus.getClients) {
           mapper.writeValue(response, Map(
@@ -87,17 +87,17 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
           ))
           response.write('\n')
         }
-        makeUnsafe(ResponseString(response.toString))
+        makeUnsafe(ResponseString(supportJsonP(p, response.toString)))
       case _ => MethodNotAllowed ~> ResponseString("method not allowed")
     }
 
     case req@Path(Seg("api" :: "clients" :: id :: Nil)) => req match {
-      case POST(_) => Body.string(req) match {
+      case POST(_) & Params(p) => Body.string(req) match {
         case "kill" =>
           Try(serverStatus.getClients(Integer.parseInt(id))) match {
             case Success(client) =>
               client.kill()
-              makeUnsafe(ResponseString(s"ok, killed client $id"))
+              makeUnsafe(ResponseString(supportJsonP(p, s"ok, killed client $id")))
             case _ =>
               BadRequest ~> ResponseString("bad request")
           }
@@ -131,7 +131,10 @@ object Webserver {
 
   def supportJsonP(params: Map[String, Seq[String]], responseText: String): String =
     if (params.contains("jsonp"))
-      "%s(\"%s\")".format(params("jsonp")(0), responseText)
+      "%s(\"%s\")".format(params("jsonp")(0), escapeForJsonp(responseText))
     else
       responseText
+
+  // bad idea, i know
+  def escapeForJsonp(string: String) = string.replace("\"", "\\\"").replace("\n", "\\n")
 }
