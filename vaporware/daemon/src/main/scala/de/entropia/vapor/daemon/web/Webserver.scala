@@ -74,19 +74,17 @@ class Webserver(val settings: Settings, val dimmer: Dimmer, val backlight: Backl
     case req@Path(Seg("api" :: "clients" :: Nil)) => req match {
       case GET(_) & Params(p) =>
         val response = new ByteArrayOutputStream()
-        for ((id, client) <- serverStatus.getClients) {
-          mapper.writeValue(response, Map(
-            "id" -> id,
-            "local-host" -> client.local.getAddress.getHostAddress,
-            "local-port" -> client.local.getPort,
-            "remote-host" -> client.remote.getAddress.getHostAddress,
-            "remote-port" -> client.remote.getPort,
-            "token" -> client.token.map(_.shortId).getOrElse(null),
-            "priority" -> client.token.map(_.priority).getOrElse(null),
-            "persistent" -> client.token.map(_.persistent).getOrElse(null)
-          ))
-          response.write('\n')
-        }
+        mapper.writeValue(response, serverStatus.getClients.toList.map { case (id, client) => Map(
+          "id" -> id,
+          "local-host" -> client.local.getAddress.getHostAddress,
+          "local-port" -> client.local.getPort,
+          "remote-host" -> client.remote.getAddress.getHostAddress,
+          "remote-port" -> client.remote.getPort,
+          "token" -> client.token.map(_.shortId).getOrElse(null),
+          "priority" -> client.token.map(_.priority).getOrElse(null),
+          "persistent" -> client.token.map(_.persistent).getOrElse(null)
+          )
+        })
         makeUnsafe(ResponseString(supportJsonP(p, response.toString)))
       case _ => MethodNotAllowed ~> ResponseString("method not allowed")
     }
