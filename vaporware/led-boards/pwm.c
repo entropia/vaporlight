@@ -150,6 +150,7 @@ void pwm_set_state(pwm_state_t state) {
 		for (unsigned int l = 0; l < MODULE_LENGTH; l++) {
 			pwm_set_brightness(l, 0);
 		}
+		pwm_send_frame();
 	}
 }
 
