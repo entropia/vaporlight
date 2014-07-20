@@ -2,7 +2,7 @@ import time
 import llvp
 
 
-BRIGHTNESS = 0.2
+BRIGHTNESS = 1.0
 RAINBOW = [
     (128, 0, 0),
     (128, 128, 0),
@@ -17,7 +17,7 @@ def main(light, num_lights):
     while True:
         j += 0.025
         time.sleep(0.01)
-        for module in xrange(1):
+        for module in xrange(num_lights // 5):
             for color_num in xrange(4):
                 color_a = RAINBOW[(int(j) + color_num) % len(RAINBOW)]
                 color_b = RAINBOW[(int(j) + color_num + 1) % len(RAINBOW)]
