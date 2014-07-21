@@ -16,7 +16,7 @@ libraryDependencies ++= Seq(
     "io.netty" % "netty" % "3.5.10.Final",
     "ch.qos.logback" % "logback-classic" % "1.0.3",
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
-    "com.sparetimelabs" % "purejavacomm" % "0.0.16" classifier "",
+    "com.sparetimelabs" % "purejavacomm" % "0.0.20" classifier "",
     "com.typesafe" % "config" % "1.0.0",
     "net.databinder" %% "unfiltered-filter" % "0.7.1",
     "net.databinder" %% "unfiltered-netty-server" % "0.7.1",
