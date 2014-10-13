@@ -17,4 +17,5 @@ Where to find what
 /vaporware/emulator            Hardware emulator (Python)
 /vaporware/daemon              TCP <-> Bus router (Scala)
 /vaporware/language_bindings   Libraries for talking to the router (Python, C++)
+/misc                          z.B. Schutzecken zum 3D-Drucken (OpenSCAD)
 
