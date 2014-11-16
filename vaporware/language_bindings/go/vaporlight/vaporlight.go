@@ -1,13 +1,13 @@
 package vaporlight
 
 import (
-	"io"
-	"net"
 	"flag"
-	"log"
-	"strconv"
-	"os"
 	"fmt"
+	"io"
+	"log"
+	"net"
+	"os"
+	"strconv"
 )
 
 // Function type for animations.
@@ -18,8 +18,8 @@ type Token [16]byte
 
 // Create a token from a string.
 func TokenFromStr(str string) (token Token) {
-    copy(token[:], []byte(str))
-    return
+	copy(token[:], []byte(str))
+	return
 }
 
 //   ____                                          _      //
@@ -37,41 +37,41 @@ func strobeCommand() command {
 }
 
 func authenticateCommand(token Token) command {
-    opcode := byte(0x02)
-    cmd := make([]byte, len(token) + 1)
-    cmd[0] = opcode
+	opcode := byte(0x02)
+	cmd := make([]byte, len(token)+1)
+	cmd[0] = opcode
 	copy(cmd[1:], token[:])
-    return cmd
+	return cmd
 }
 
 func setLedCommand(led int, rgba [4]uint8) command {
-    opcode := byte(0x01)
-    cmd := make([]byte, 7)
-    cmd[0] = opcode
-    cmd[1] = byte(led >> 8)
-    cmd[2] = byte(led & 255)
-    cmd[3] = rgba[0]
-    cmd[4] = rgba[1]
-    cmd[5] = rgba[2]
-    cmd[6] = rgba[3]
-    return cmd
+	opcode := byte(0x01)
+	cmd := make([]byte, 7)
+	cmd[0] = opcode
+	cmd[1] = byte(led >> 8)
+	cmd[2] = byte(led & 255)
+	cmd[3] = rgba[0]
+	cmd[4] = rgba[1]
+	cmd[5] = rgba[2]
+	cmd[6] = rgba[3]
+	return cmd
 }
 
 func hiResSetLedCommand(led int, rgba [4]uint16) command {
-    opcode := byte(0x03)
-    cmd := make([]byte, 11)
-    cmd[0] = opcode
-    cmd[1] = byte(led >> 8)
-    cmd[2] = byte(led & 255)
-    cmd[3] = byte(rgba[0] >> 8)
-    cmd[4] = byte(rgba[0] & 255)
-    cmd[5] = byte(rgba[1] >> 8)
-    cmd[6] = byte(rgba[1] & 255)
-    cmd[7] = byte(rgba[2] >> 8)
-    cmd[8] = byte(rgba[2] & 255)
-    cmd[9] = byte(rgba[3] >> 8)
-    cmd[10] = byte(rgba[3] & 255)
-    return cmd
+	opcode := byte(0x03)
+	cmd := make([]byte, 11)
+	cmd[0] = opcode
+	cmd[1] = byte(led >> 8)
+	cmd[2] = byte(led & 255)
+	cmd[3] = byte(rgba[0] >> 8)
+	cmd[4] = byte(rgba[0] & 255)
+	cmd[5] = byte(rgba[1] >> 8)
+	cmd[6] = byte(rgba[1] & 255)
+	cmd[7] = byte(rgba[2] >> 8)
+	cmd[8] = byte(rgba[2] & 255)
+	cmd[9] = byte(rgba[3] >> 8)
+	cmd[10] = byte(rgba[3] & 255)
+	return cmd
 }
 
 //   ____            _             _ _            //
@@ -83,7 +83,7 @@ func hiResSetLedCommand(led int, rgba [4]uint16) command {
 
 type Controller struct {
 	writer io.WriteCloser
-	token Token
+	token  Token
 }
 
 func (con Controller) send(cmd command) {
@@ -141,7 +141,6 @@ func SocketController(token Token, host string, port int) Controller {
 	}
 	return Controller{conn, token}
 }
-
 
 //  __  __       _        //
 // |  \/  | __ _(_)_ __   //
