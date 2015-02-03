@@ -28,5 +28,3 @@ seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 mainClass in oneJar := Some("de.entropia.vapor.daemon.Application")
 
-seq(ScctPlugin.instrumentSettings : _*)
-
