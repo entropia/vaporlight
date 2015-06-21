@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.2">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -1419,7 +1419,7 @@ for trimmer refence see : &lt;u&gt;www.electrospec-inc.com/cross_references/trim
 <class number="0" name="default" width="0" drill="0">
 </class>
 </classes>
-<designrules>
+<designrules name="default">
 <description language="de">&lt;b&gt;EAGLE Design Rules&lt;/b&gt;
 &lt;p&gt;
 Die Standard-Design-Rules sind so gewählt, dass sie für 
@@ -1602,7 +1602,7 @@ Please make sure your boards conform to these design rules.</description>
 <element name="VOUT6" library="wirepad" package="5-2,5" value="PAD5-2,5" x="17.018" y="22.225" smashed="yes" rot="R180"/>
 <element name="U$9" library="tps40055" package="TSSOP16" value="TPS40055" x="54.61" y="13.843" smashed="yes" rot="MR270"/>
 <element name="C4" library="rcl" package="C0805" value="100p" x="51.435" y="18.923" smashed="yes" rot="MR270"/>
-<element name="R33" library="rcl" package="R0805" value="15k" x="53.467" y="18.923" smashed="yes" rot="MR90"/>
+<element name="R33" library="rcl" package="R0805" value="22k" x="53.467" y="18.923" smashed="yes" rot="MR90"/>
 <element name="C5" library="rcl" package="C0805" value="1u" x="47.625" y="18.923" smashed="yes" rot="MR270"/>
 <element name="C6" library="rcl" package="C0805" value="1u" x="45.72" y="11.557" smashed="yes" rot="MR270"/>
 <element name="C7" library="rcl" package="C0805" value="4n7" x="62.992" y="11.557" smashed="yes" rot="MR0"/>

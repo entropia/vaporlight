@@ -16068,7 +16068,7 @@ Source: AVX .. aphvc.pdf</description>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
-<part name="R33" library="rcl" deviceset="R-EU_" device="R0805" value="15k"/>
+<part name="R33" library="rcl" deviceset="R-EU_" device="R0805" value="22k"/>
 <part name="P+7" library="supply1" deviceset="+24V" device=""/>
 <part name="P+8" library="supply1" deviceset="+24V" device=""/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0805" value="1u"/>
