@@ -3,7 +3,7 @@ PRG            = led-board
 
 # Optimization settings
 # OPTIMIZE       = -O2 -g
-OPTIMIZE       = -Os -flto
+OPTIMIZE       = -O2 -flto
 
 # Unused for now
 LIBS           =
@@ -11,8 +11,8 @@ LIBS           =
 # Enable/disable debugging code. Available switches are:
 #
 # Additional trace output:
-# 	TRACE_STARTUP, TRACE_COMMANDS, TRACE_FLASH, TRACE_ERRORS, TRACE_USART
-# Suppress all trace output:
+# 	TRACE_STARTUP, TRACE_COMMANDS, TRACE_FLASH, TRACE_ERRORS, TRACE_USART, TRACE_UPDATE
+# Suppress all trace output, except TRACE_UPDATE:
 #	NDEBUG
 # Simplifications for debugging
 # 	SHORT_LOOPS, OMIT_HEAT_CHECK
@@ -27,7 +27,7 @@ BUS_BAUDRATE = 500000
 
 # End of configuration section.
 
-OBJ            = color.o command.o config.o console.o console_prompt.o debug.o error.o fail.o fixedpoint.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o
+OBJ            = color.o command.o config.o console.o console_prompt.o debug.o error.o fail.o fixedpoint.o flash.o heat.o main.o pwm.o startup.o usart1.o usart2.o update.o
 
 CC             = arm-none-eabi-gcc
 OBJCOPY        = arm-none-eabi-objcopy
@@ -67,13 +67,13 @@ bin:  $(PRG).bin
 srec: $(PRG).srec
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+	$(OBJCOPY) -j .text -j .data -j .update -O ihex $< $@
 
 %.srec: %.elf
-	$(OBJCOPY) -j .text -j .data -O srec $< $@
+	$(OBJCOPY) -j .text -j .data -j .update -O srec $< $@
 
 %.bin: %.elf
-	$(OBJCOPY) -j .text -j .data -O binary $< $@
+	$(OBJCOPY) -j .text -j .data -j .update -O binary $< $@
 
 # Rules for building the .eeprom rom images
 

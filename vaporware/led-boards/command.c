@@ -7,15 +7,18 @@
 #include "pwm.h"
 #include "usart2.h"
 #include "term.h"
+#include "update.h"
 
 /*
  * The broadcast address.
  */
 static const uint8_t BROADCAST = 0xff;
 
+// Commands 0xf0 to 0xfd are reserved for use in firmware update mode.
 typedef enum {
 	CMD_SET_RAW = 0x00,
 	CMD_SET_XYY = 0x01,
+	CMD_UPDATE = 0xfe,
 	CMD_STROBE = 0xff
 } commant_t;
 
@@ -58,6 +61,7 @@ static int length_check(uint8_t *command_prefix, int length_so_far) {
 		case CMD_SET_XYY:
 			total_length = 1 + (sizeof(uint16_t) * 3 * RGB_LED_COUNT);
 			break;
+		case CMD_UPDATE:
 		case CMD_STROBE:
 			total_length = 1;
 			break;
@@ -152,6 +156,16 @@ static error_t run_set_xyY(uint8_t *args) {
 	return E_SUCCESS;
 }
 
+static error_t run_update(uint8_t *args) {
+	(void)args;
+#ifdef TRACE_COMMANDS
+	console_write("Update");
+#endif
+	update_start();
+	// We will never get here, but anyway...
+	return E_SUCCESS;
+}
+
 /*
  * Runs the command pointed to by 'command'.
  *
@@ -164,6 +178,9 @@ error_t run_command(uint8_t *command) {
 		break;
 	case CMD_SET_XYY:
 		return run_set_xyY(command + 1);
+		break;
+	case CMD_UPDATE:
+		return run_update(command + 1);
 		break;
 	case CMD_STROBE:
 #ifdef TRACE_COMMANDS

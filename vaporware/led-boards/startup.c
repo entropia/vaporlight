@@ -134,10 +134,12 @@ static inline void clock_init() {
 	RCC_CFGR |= (RCC_CFGR_SW_SYSCLKSEL_PLLCLK << 0); // Assuming that HSI was selected before.
 
 	// Enable peripherals:
+	//  - CRC
 	//  - Flash programming
 	//  - SRAM clock
 	//  - DMA 1 and 2
-	RCC_AHBENR |= RCC_AHBENR_FLITFEN |
+	RCC_AHBENR |= RCC_AHBENR_CRCEN |
+		RCC_AHBENR_FLITFEN |
 		RCC_AHBENR_SRAMEN |
 		RCC_AHBENR_DMA2EN |
 		RCC_AHBENR_DMA1EN;
@@ -182,7 +184,7 @@ static inline void clock_init() {
 static void remap_init() {
 	// Alternate function, push-pull, 10 MHz
 	// CNF1 = 1, CNF0 = 0, MODE = 01
-	
+
 	GPIOA_CRL = (GPIO_CNF_OUTPUT_ALTFN_PUSHPULL << 2) | // TIM2_CH1
 		(GPIO_MODE_OUTPUT_10_MHZ << 0) |
 		(GPIO_CNF_OUTPUT_ALTFN_PUSHPULL << 6) |     // TIM2_CH2
@@ -281,7 +283,7 @@ void startup() {
 #endif
 
 	main();
-	
+
 	while (1);
 }
 
@@ -305,7 +307,7 @@ void __attribute__ ((interrupt("IRQ"))) systick() {
  */
 void __attribute__ ((interrupt("IRQ"))) unexpected_interrupt() {
 	int iabr;
-	
+
 	while (1) {
 		dled_on();
 		debug_string("Unexpected interrupt\n");
@@ -327,7 +329,7 @@ void __attribute__ ((interrupt("IRQ"))) serious_error() {
 	// The processor is running at 24MHz, so counting to 12000000 gives about
 	// 2s LED blinking time (assuming 4 cycles for the loop), which is
 	// separate from every other pattern.
-	
+
 	while(1) {
 		dled_on();
 		for (int i = 0; i < 12000000; i++) {

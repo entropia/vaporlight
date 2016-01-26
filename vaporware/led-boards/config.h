@@ -76,7 +76,7 @@ static const int USART_FAIL_TRESHOLD = 20;
 
 
 // Number base used for reading user input in the config console.
-#define CONSOLE_READ_BASE 10
+#define CONSOLE_READ_BASE 16
 
 
 // Temperature sensor ADC ports
