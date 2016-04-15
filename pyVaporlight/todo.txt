@@ -1,0 +1,7 @@
+- Lua implementation not testet yet
+- write lua effects
+- rewrite config style
+- Flask frontend
+    - control lua scripts
+    - control master brightness
+    - see all running vaporlight effects (incl. vapornet)

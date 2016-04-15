@@ -1,0 +1,12 @@
+{
+  "device_mapping": {
+    "0": {
+      "addr": 1,
+      "channels": {
+        "RED": 0,
+        "GREEN": 1,
+        "BLUE": 2
+      }
+    }
+  }
+}
