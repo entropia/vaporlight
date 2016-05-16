@@ -1,17 +1,16 @@
-"use strict";
+'use strict';
 
 /**
- * JavaScript/nodejs bindings for the mighty vaporlight.
+ * JavaScript/Node.js bindings for the mighty vaporlight
  *
  * @author MoritzKn
- * @license MIT
  */
 
 const net = require('net');
 
-const DEFAULT_HOST = "vaporlight.club.entropia.de";
+const DEFAULT_HOST = 'vaporlight.club.entropia.de';
 const DEFAULT_PORT = 7534;
-const DEFAULT_TOKEN = "sixteen letters.";
+const DEFAULT_TOKEN = 'sixteen letters.';
 const ALPHA_VISIBLE = 255;
 
 const OP_AUTH = 0x02;
@@ -50,8 +49,10 @@ VaporLight.prototype.connect = function (callback) {
  * Close the connection
  */
 VaporLight.prototype.close = function () {
-    this.socket.end();
-    this.socket = null;
+    if (this.socket) {
+        this.socket.end();
+        this.socket = null;
+    }
 };
 
 /**
@@ -71,12 +72,10 @@ VaporLight.prototype.on = function (event, callback) {
  * @param  {Function} [callback] - when the token is written out
  */
 VaporLight.prototype.authenticate = function(callback) {
-	console.log("Try authenticate with '%s'", this.token);
+	console.log('Try authenticate with "%s"', this.token);
 
     this.socket.write(Buffer.from([OP_AUTH]), () => {
-        this.socket.write(this.token, "ascii", () => {
-            callback();
-        });
+        this.socket.write(this.token, 'ascii', callback);
     });
 };
 

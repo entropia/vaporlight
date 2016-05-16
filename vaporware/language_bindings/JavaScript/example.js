@@ -1,12 +1,6 @@
-"use strict";
+#!/usr/bin/env node
 
-/**
- * Example use of the vaporlight JavaScript bindings
- *
- * @author MoritzKn
- * @license MIT
- */
-
+'use strict';
 
 const VaporLight = require('./');
 
@@ -15,10 +9,9 @@ const LAST_LIGHT = 34;
 
 let vaporLight = new VaporLight();
 
-vaporLight.on("connect", () => {
-    vaporLight.authenticate(() => {
-        animate();
-    });
+vaporLight.on('connect', () => {
+    vaporLight.authenticate();
+    animate();
 });
 
 
@@ -30,10 +23,11 @@ const animate = function () {
                 g: parseInt((255 / 8) * i, 10),
                 b: parseInt(255 - (255 / 8) * i, 10)
             };
-            setLedColor(start-i, color)
+            setLedColor(start-i, color);
         }
         vaporLight.strobe();
-        setTimeout(function () {
+
+        setTimeout(() => {
             tail(putLedInRange(start+1));
         }, 100);
     })(0);
@@ -42,9 +36,9 @@ const animate = function () {
 const setLedColor = function (led, color) {
     led = putLedInRange(led);
     if (color.a) {
-        vaporLight.setRGB8(led, color.r, color.g, color.b);
-    } else {
         vaporLight.setRGBA8(led, color.r, color.g, color.b, color.a);
+    } else {
+        vaporLight.setRGB8(led, color.r, color.g, color.b);
     }
 };
 
@@ -54,7 +48,6 @@ const putLedInRange = function (led) {
     return led;
 };
 
-// close connection on process exit
 process.stdin.resume();
 const exitHandler = function(options, err) {
     vaporLight.close();
