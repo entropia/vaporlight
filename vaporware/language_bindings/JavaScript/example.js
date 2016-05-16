@@ -1,10 +1,20 @@
 "use strict";
 
+/**
+ * Example use of the vaporlight JavaScript bindings
+ *
+ * @author MoritzKn
+ * @license MIT
+ */
+
+
 const VaporLight = require('./');
 
+// index of the last LED
 const LAST_LIGHT = 34;
 
 let vaporLight = new VaporLight();
+
 vaporLight.on("connect", () => {
     vaporLight.authenticate(() => {
         animate();
@@ -44,6 +54,7 @@ const putLedInRange = function (led) {
     return led;
 };
 
+// close connection on process exit
 process.stdin.resume();
 const exitHandler = function(options, err) {
     vaporLight.close();
