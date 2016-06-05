@@ -83,7 +83,7 @@ to 0xFFFF (highest or opaque)::
 For historicaly reasons, there is also a legacy
 low-precision version of the set-led command::
 
-  <set-led-8> ::= 0x01 <led-id:byte> <rgba>
+  <set-led-8> ::= 0x01 <led-id:int16> <rgba>
   <rgba-8> ::= <r:byte> <g:byte> <b:byte> <a:byte>
 
 Changes don't take effect until you issue
