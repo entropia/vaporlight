@@ -5,14 +5,16 @@ import (
 	"time"
 )
 
-func rainbow(con vaporlight.Controller, leds int, speed int) {
-	for i := 0; i < leds; i++ {
+func rainbow(con vaporlight.Controller, leds uint16, speed int) {
+	fmt.Println(leds)
+	var i uint16
+	for i = 0; i < leds; i++ {
 		con.SetRgba8(i, [4]uint8{0, 0, 0, 255})
 	}
 	sleepTime := time.Duration(8*(11-speed)^2) * time.Millisecond
 	for loop := 0; true; loop++ {
-		for i := 0; i < leds; i++ {
-			con.SetRgb8(i, wheel(uint8((i*256/leds+(loop%256))&255)))
+		for i = 0; i < leds; i++ {
+			con.SetRgb8(i, wheel(uint8((int(i*256/leds)+(loop%256))&255)))
 		}
 		con.Strobe()
 		time.Sleep(sleepTime)

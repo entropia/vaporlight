@@ -12,7 +12,7 @@ import (
 
 // Function type for animations.
 // Implement and run vaporlight.Main(yourfunction)
-type Animation func(Controller, int, int)
+type Animation func(Controller, uint16, int)
 
 type Token [16]byte
 
@@ -44,7 +44,7 @@ func authenticateCommand(token Token) command {
 	return cmd
 }
 
-func setLedCommand(led int, rgba [4]uint8) command {
+func setLedCommand(led uint16, rgba [4]uint8) command {
 	opcode := byte(0x01)
 	cmd := make([]byte, 7)
 	cmd[0] = opcode
@@ -57,7 +57,7 @@ func setLedCommand(led int, rgba [4]uint8) command {
 	return cmd
 }
 
-func hiResSetLedCommand(led int, rgba [4]uint16) command {
+func hiResSetLedCommand(led uint16, rgba [4]uint16) command {
 	opcode := byte(0x03)
 	cmd := make([]byte, 11)
 	cmd[0] = opcode
@@ -98,24 +98,24 @@ func (con Controller) Authenticate() {
 }
 
 // Set one led to 8 bit rgb values, alpha at max
-func (con Controller) SetRgb8(led int, rgb [3]uint8) {
+func (con Controller) SetRgb8(led uint16, rgb [3]uint8) {
 	rgba := [4]uint8{rgb[0], rgb[1], rgb[2], 255}
 	con.SetRgba8(led, rgba)
 }
 
 // Set one led to 8 bit rgba values
-func (con Controller) SetRgba8(led int, rgba [4]uint8) {
+func (con Controller) SetRgba8(led uint16, rgba [4]uint8) {
 	con.send(setLedCommand(led, rgba))
 }
 
 // Set one led to 16 bit rgb values, alpha at max
-func (con Controller) SetRgb16(led int, rgb [3]uint16) {
+func (con Controller) SetRgb16(led uint16, rgb [3]uint16) {
 	rgba := [4]uint16{rgb[0], rgb[1], rgb[2], 65535}
 	con.SetRgba16(led, rgba)
 }
 
 // Set one led to 16 bit rgba values
-func (con Controller) SetRgba16(led int, rgba [4]uint16) {
+func (con Controller) SetRgba16(led uint16, rgba [4]uint16) {
 	con.send(hiResSetLedCommand(led, rgba))
 }
 
@@ -150,7 +150,7 @@ func SocketController(token Token, host string, port int) Controller {
 //                        //
 
 func Main(f Animation) {
-	var leds = flag.Int("leds", 5, "number of leds")
+	var leds_ = flag.Int("leds", 5, "number of leds")
 	var host = flag.String("host", "localhost", "the vaporlight server's hostname or IP address")
 	var port = flag.Int("port", 7534, "port the vaporlight server runs on")
 	var token = TokenFromStr(*flag.String("token", "sixteen letters.", "token to authenticate with"))
@@ -163,8 +163,12 @@ func Main(f Animation) {
 	if *speed < 1 || *speed > 10 {
 		log.Fatal("animation speed not in range 1..10")
 	}
+	if *leds_ > 65535 {
+		log.Fatal("number of LEDs is limited to 2^16")
+	}
+	var leds = uint16(*leds_)
 	dev := SocketController(token, *host, *port)
 	dev.Authenticate()
 
-	f(dev, *leds, *speed)
+	f(dev, leds, *speed)
 }
