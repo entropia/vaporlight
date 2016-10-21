@@ -1,0 +1,15 @@
+[package]
+name = "vaporlight"
+version = "0.1.0"
+authors = ["Clemens Wallrath <dev@nervengiftlabs.de>"]
+
+description = "Rust bindings for vaporlight, Entropia's ilumination system"
+documentation = "https://entropia.de/Vaporlight_forever"
+repository = "https://github.com/entropia/vaporlight"
+
+license = "WTFPL"
+
+[dependencies]
+log = "0.3.6"
+docopt = "0.6"
+rustc-serialize = "0.3"
